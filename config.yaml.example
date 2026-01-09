@@ -1,0 +1,25 @@
+server:
+  host: 0.0.0.0
+  port: 8000
+  base_url: http://localhost:8000
+
+database:
+  url: sqlite+aiosqlite:///./mcp_gateway.db
+
+logging:
+  level: INFO
+  format: json
+
+southbound:
+  connection_timeout: 30
+  health_check_interval: 60
+  max_reconnect_attempts: 5
+  reconnect_backoff_base: 2
+
+northbound:
+  instance_path_prefix: /mcp/instances
+  tool_invocation_timeout: 120
+
+security:
+  encryption_key: ${ENCRYPTION_KEY:-default-dev-key-change-in-production}
+  api_key_required: false

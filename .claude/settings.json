@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/joksan.flores/Downloads/AI_Sandbox/side_projects/claude-code/plugins/ralph-wiggum/scripts/setup-ralph-loop.sh:*)",
+      "Bash:*",
+      "Read",
+      "Edit",
+      "Write",
+      "LS",
+      "Glob",
+      "Grep",
+      "Bash(ls *)",
+      "Bash(cd *)",
+      "Bash(pwd)",
+      "Bash(cat *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pip *)",
+      "Bash(uv *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(chmod *)",
+      "Bash(chown *)",
+      "Read(./.env)",
+      "Read(./secrets/**)"
+    ]
+    
+  }
+}

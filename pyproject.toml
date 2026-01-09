@@ -1,0 +1,79 @@
+[project]
+name = "mcp-gateway"
+version = "0.1.0"
+description = "MCP Gateway - Intelligent intermediary for managing multiple MCP servers"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Joksan Flores" }
+]
+
+dependencies = [
+    # Core dependencies
+    "fastmcp>=2.0.0",
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+
+    # Database
+    "sqlalchemy>=2.0.25",
+    "alembic>=1.13.1",
+    "psycopg2-binary>=2.9.9",
+    "asyncpg>=0.29.0",
+    "aiosqlite>=0.19.0",
+
+    # Async and HTTP
+    "httpx>=0.26.0",
+    "anyio>=4.2.0",
+    "websockets>=12.0",
+
+    # Security and utilities
+    "python-multipart>=0.0.6",
+    "cryptography>=42.0.0",
+    "python-jose>=3.3.0",
+    "pyyaml>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
+    "black>=24.1.1",
+    "ruff>=0.1.14",
+    "mypy>=1.8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = []
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

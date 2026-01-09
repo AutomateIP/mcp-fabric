@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+.uv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+mcp_gateway.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+config.yaml
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.turbo/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+backend.log
+gateway.db
+
+# Cache
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Claude Code
+.claude/ralph-loop.local.md
+.claude/*/ralph-loop.local.md
+
+# Backups
+backups/
+*.backup
+*.dump
+
+# Docker
+docker-compose.override.yml
+
+# Archive directory (contains historical docs, scripts, dev files)
+archive/

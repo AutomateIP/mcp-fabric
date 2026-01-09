@@ -1,0 +1,292 @@
+@import "tailwindcss";
+
+/* Theme configuration using CSS custom properties for Tailwind v4 */
+@theme {
+  /* Color palette */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+
+  /* Spacing scale (8px grid) */
+  --spacing-1: 8px;
+  --spacing-2: 16px;
+  --spacing-3: 24px;
+  --spacing-4: 32px;
+  --spacing-5: 40px;
+  --spacing-6: 48px;
+  --spacing-7: 56px;
+  --spacing-8: 64px;
+
+  /* Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  --line-height-xs: 16px;
+  --line-height-sm: 20px;
+  --line-height-base: 24px;
+  --line-height-lg: 28px;
+  --line-height-xl: 28px;
+  --line-height-2xl: 32px;
+  --line-height-3xl: 36px;
+  --line-height-4xl: 40px;
+}
+
+/* Base styles */
+:root {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Improve focus visibility for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Ensure proper box-sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Button base styles with clear interaction states */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px; /* Increased for better touch targets (min 44x44px) */
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px; /* Slightly larger for better readability */
+  line-height: 22px;
+  transition: all 200ms;
+  cursor: pointer;
+  border: none;
+  min-height: 44px; /* Ensure minimum touch target size */
+}
+
+.btn:focus-visible {
+  outline: 2px solid;
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-600);
+}
+
+.btn-primary:active:not(:disabled) {
+  background-color: var(--color-primary-700);
+}
+
+.btn-primary:focus-visible {
+  outline-color: var(--color-primary-500);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--color-neutral-700);
+  border: 1px solid var(--color-neutral-300);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-neutral-50);
+}
+
+.btn-secondary:active:not(:disabled) {
+  background-color: var(--color-neutral-100);
+}
+
+.btn-secondary:focus-visible {
+  outline-color: var(--color-neutral-500);
+}
+
+.btn-success {
+  background-color: var(--color-success-500);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: var(--color-success-600);
+}
+
+.btn-success:active:not(:disabled) {
+  background-color: var(--color-success-700);
+}
+
+.btn-success:focus-visible {
+  outline-color: var(--color-success-500);
+}
+
+/* Card component with proper spacing and hierarchy */
+.card {
+  background-color: white;
+  border-radius: 12px; /* Slightly larger radius for modern look */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04); /* More subtle shadow */
+  border: 1px solid var(--color-neutral-200);
+  padding: 24px; /* Increased from 16px for more breathing room */
+}
+
+/* Input fields with consistent styling */
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-neutral-900);
+  transition: all 200ms;
+}
+
+.input::placeholder {
+  color: var(--color-neutral-400);
+}
+
+.input:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.input:disabled {
+  background-color: var(--color-neutral-100);
+  cursor: not-allowed;
+}
+
+.input-error {
+  border-color: #ef4444;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+/* Labels with proper contrast */
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-neutral-700);
+  margin-bottom: 4px;
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-neutral-200);
+  border-top-color: var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Badge/tag component */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.badge-primary {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.badge-success {
+  background-color: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.badge-neutral {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+
+/* Spacing utilities aligned with 8px grid */
+.space-section > * + * {
+  margin-top: 24px; /* Increased from 16px for more breathing room */
+}
+
+.space-form > * + * {
+  margin-top: 16px; /* Increased from 12px for better separation */
+}
+
+/* Animation for loading states */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
