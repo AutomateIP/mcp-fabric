@@ -41,7 +41,7 @@ MCP Gateway lets you:
 
 ### 🐳 Docker (Recommended)
 
-Fastest way to get started:
+Get up and running in under a minute:
 
 ```bash
 # Start all services
@@ -49,68 +49,37 @@ docker compose up -d
 
 # View logs
 docker compose logs -f
-
-# Access the application
-# Backend API: http://localhost:8000
-# Frontend UI: http://localhost:3000
 ```
+
+**That's it!** Access the application:
+- **Backend API**: http://localhost:8000
+- **Frontend UI**: http://localhost:3000
+- **API Docs**: http://localhost:8000/docs
 
 Services included:
 - PostgreSQL 15 database
-- Backend API server
-- Frontend web UI
+- Backend API server (FastAPI)
+- Frontend web UI (React)
 
 ### Manual Installation
 
-#### Prerequisites
-- Python 3.11+
-- PostgreSQL 15+
-- Node.js 18+ (for frontend)
+For development without Docker, see the detailed setup guide in [docs/QUICKSTART_MODERN.md](docs/QUICKSTART_MODERN.md).
 
-#### Backend Setup
-
+**Quick version**:
 ```bash
-# 1. Set up PostgreSQL
-docker run -d \
-  --name mcp-gateway-db \
-  -e POSTGRES_PASSWORD=dev \
-  -e POSTGRES_DB=mcp_gateway \
-  -p 5432:5432 \
-  postgres:15
-
-# Or install PostgreSQL locally (macOS)
-brew install postgresql@15
-brew services start postgresql@15
-createdb mcp_gateway
-
-# 2. Install dependencies
+# 1. Install PostgreSQL 15+ and create database
+# 2. Install Python dependencies
 pip install -e .
 
-# 3. Configure database connection
-cat > .env << EOF
-DATABASE_URL=postgresql+asyncpg://postgres:dev@localhost:5432/mcp_gateway
-SERVER_HOST=0.0.0.0
-SERVER_PORT=8000
-EOF
+# 3. Configure database (create .env file)
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/mcp_gateway
 
-# 4. Run migrations
+# 4. Run migrations and start
 alembic upgrade head
-
-# 5. Start backend
 python -m app.main
 ```
 
-Backend API available at http://localhost:8000
-
-#### Frontend Setup
-
-```bash
-cd frontend/mcp-gateway-ui
-npm install
-npm run dev
-```
-
-Frontend UI available at http://localhost:5173
+Backend runs at http://localhost:8000
 
 ## Usage Examples
 
@@ -290,8 +259,7 @@ alembic downgrade -1
 
 For detailed guides and technical documentation:
 - **[docs/QUICKSTART_MODERN.md](docs/QUICKSTART_MODERN.md)** - Comprehensive setup guide with examples
-- **[CLAUDE.md](CLAUDE.md)** - AI assistant guidance and architectural details
-- **[AGENTS.md](AGENTS.md)** - AI agent persistent memory and code patterns
+- **[AGENTS.md](AGENTS.md)** - AI agent persistent memory and code patterns (primary reference)
 - **[PROMPT.md](PROMPT.md)** - Complete project requirements and specifications
 
 ## Project Structure
