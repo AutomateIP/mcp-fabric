@@ -3,18 +3,15 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getServers, deleteServer } from '../api/services';
 import type { Server } from '../types';
-import Modal from '../components/Modal';
-import ServerForm from '../components/ServerForm';
 import ServerDetailsModal from '../components/ServerDetailsModal';
-import QuickInstallModal from '../components/QuickInstallModal';
 
 export default function Servers() {
+  const navigate = useNavigate();
   const [servers, setServers] = useState<Server[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [showQuickInstall, setShowQuickInstall] = useState(false);
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,7 +68,7 @@ export default function Servers() {
           <p className="mt-2 text-base text-neutral-600 max-w-2xl">
             Southbound MCP servers •
             <button
-              onClick={() => setShowQuickInstall(true)}
+              onClick={() => navigate('/servers/create/quick')}
               className="ml-2 text-green-600 hover:text-green-700 font-medium underline"
             >
               Paste install command ⚡
@@ -80,14 +77,14 @@ export default function Servers() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setShowQuickInstall(true)}
+            onClick={() => navigate('/servers/create/quick')}
             className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-xl text-lg px-6 py-3"
           >
             <span className="text-2xl">⚡</span>
             <span className="font-semibold">Quick Install</span>
           </button>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => navigate('/servers/create/advanced')}
             className="btn-secondary text-sm"
           >
             Advanced
@@ -101,7 +98,7 @@ export default function Servers() {
           <p className="text-xl text-neutral-700 font-semibold mb-2">No servers configured yet</p>
           <p className="text-base text-neutral-600 mb-6">Install an MCP server in seconds</p>
           <button
-            onClick={() => setShowQuickInstall(true)}
+            onClick={() => navigate('/servers/create/quick')}
             className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-4 rounded-lg shadow-xl text-lg font-semibold transition-all"
           >
             <span className="text-2xl">⚡</span>
@@ -112,99 +109,79 @@ export default function Servers() {
           </p>
         </div>
       ) : (
-        <div className="card p-0 overflow-hidden">
-          <ul className="divide-y divide-neutral-200">
-            {servers.map((server) => (
-              <li key={server.id} className="px-6 py-4 hover:bg-neutral-50 transition-colors duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <h3 className="text-lg font-medium text-neutral-900">{server.name}</h3>
-                      <span
-                        className={`ml-3 badge ${statusColors[server.status]}`}
-                      >
-                        {server.status}
-                      </span>
-                      {server.installation_type === 'pip' && (
-                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          pip {server.use_uv && '⚡'}
-                        </span>
-                      )}
-                      {server.installation_type === 'git' && (
-                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          git
-                        </span>
-                      )}
-                    </div>
-                    {server.description && (
-                      <p className="mt-1 text-sm text-neutral-600">{server.description}</p>
-                    )}
-                    <div className="mt-2 flex items-center text-sm text-neutral-600">
-                      <span className="capitalize">{server.transport_type}</span>
-                      <span className="mx-2">•</span>
-                      <span>{server.tool_count} tools</span>
-                      {server.last_connected_at && (
-                        <>
-                          <span className="mx-2">•</span>
-                          <span>
-                            Last connected:{' '}
-                            {new Date(server.last_connected_at).toLocaleString()}
-                          </span>
-                        </>
-                      )}
-                    </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {servers.map((server) => (
+            <div key={server.id} className="card hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center flex-wrap gap-2">
+                    <h3 className="text-lg font-medium text-neutral-900">{server.name}</h3>
+                    <span className={`badge ${statusColors[server.status]}`}>
+                      {server.status}
+                    </span>
                   </div>
-                  <div className="ml-4 flex space-x-2">
-                    <button
-                      onClick={() => setSelectedServerId(server.id)}
-                      className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleDelete(server.id)}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors duration-200"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  {server.description && (
+                    <p className="mt-1 text-sm text-neutral-600">{server.description}</p>
+                  )}
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+
+              <div className="mt-3">
+                <div className="text-sm text-neutral-600">
+                  <div className="flex items-center justify-between py-2">
+                    <span>Tools</span>
+                    <span className="font-medium text-neutral-900">{server.tool_count}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span>Transport</span>
+                    <span className="font-medium text-neutral-900 capitalize">{server.transport_type}</span>
+                  </div>
+                  {server.installation_type && (
+                    <div className="flex items-center justify-between py-2">
+                      <span>Install Type</span>
+                      <span className="font-medium text-neutral-900">
+                        {server.installation_type === 'pip' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+                            pip {server.use_uv && '⚡'}
+                          </span>
+                        )}
+                        {server.installation_type === 'git' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+                            git
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center space-x-2">
+                <button
+                  onClick={() => setSelectedServerId(server.id)}
+                  className="flex-1 bg-primary-50 text-primary-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-100 transition-colors duration-200"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => handleDelete(server.id)}
+                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors duration-200"
+                >
+                  Delete
+                </button>
+              </div>
+
+              {server.last_connected_at && (
+                <div className="mt-3 pt-3 border-t border-neutral-200">
+                  <p className="text-xs text-neutral-500">
+                    Last connected: {new Date(server.last_connected_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
-
-      {/* Quick Install Modal */}
-      <QuickInstallModal
-        isOpen={showQuickInstall}
-        onClose={() => setShowQuickInstall(false)}
-        onSuccess={() => {
-          setShowQuickInstall(false);
-          loadServers();
-        }}
-      />
-
-      {/* Add Server Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Add MCP Server"
-      >
-        <ServerForm
-          onSuccess={() => {
-            setShowModal(false);
-            loadServers();
-          }}
-          onCancel={() => setShowModal(false)}
-        />
-      </Modal>
 
       {/* Server Details Modal */}
       {selectedServerId && (
