@@ -35,7 +35,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-200"
+        className="fixed inset-0 bg-black bg-opacity-10 transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
       />

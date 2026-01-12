@@ -41,32 +41,33 @@ export default function SlidePanel({
   if (!isOpen) return null;
 
   const sizeClasses = {
-    default: 'w-[85vw] max-w-4xl',
-    large: 'w-[95vw] max-w-7xl',
-    full: 'w-screen'
+    default: { width: 'w-[85vw] max-w-4xl', position: 'right-0', transform: true },
+    large: { width: 'inset-x-0', position: '', transform: false },
+    full: { width: 'inset-x-0', position: '', transform: false }
   };
+
+  const config = sizeClasses[size];
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 ${
-          isOpen ? 'bg-opacity-10' : 'bg-opacity-0'
-        }`}
+        className="fixed inset-0 bg-black bg-opacity-10 transition-opacity duration-300"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Slide Panel */}
-      <div className="fixed inset-y-0 right-0 flex max-w-full">
-        <div
-          className={`relative transform transition-transform duration-300 ease-in-out ${
-            isOpen ? 'translate-x-0' : 'translate-x-full'
-          } ${sizeClasses[size]}`}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="panel-title"
-        >
+      <div
+        className={`fixed inset-y-0 ${config.position} ${config.width} ${
+          config.transform
+            ? `transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`
+            : `transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="panel-title"
+      >
           <div className="flex h-full flex-col bg-white shadow-2xl">
             {/* Header - Enhanced with better spacing */}
             <div className="border-b-2 border-neutral-200 bg-gradient-to-r from-primary-50 via-white to-primary-50/30">
@@ -96,14 +97,13 @@ export default function SlidePanel({
               </div>
             </div>
 
-            {/* Content - Scrollable with better spacing */}
+            {/* Content - Scrollable with better spacing, full width */}
             <div className="flex-1 overflow-y-auto bg-neutral-50/30">
-              <div className="px-8 py-8 max-w-[1800px] mx-auto">
+              <div className="px-8 py-8">
                 {children}
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Servers from './pages/Servers';
 import Instances from './pages/Instances';
+import CreateInstance from './pages/CreateInstance';
 import Tools from './pages/Tools';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="servers" element={<Servers />} />
           <Route path="instances" element={<Instances />} />
+          <Route path="instances/create" element={<CreateInstance />} />
           <Route path="tools" element={<Tools />} />
         </Route>
       </Routes>

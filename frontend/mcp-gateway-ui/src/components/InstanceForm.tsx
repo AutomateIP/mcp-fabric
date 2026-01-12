@@ -129,133 +129,150 @@ export default function InstanceForm({ onSuccess, onCancel }: InstanceFormProps)
         </div>
       )}
 
-      {/* Basic Info */}
-      <div className="space-form">
-        <div>
-          <label className="label">
-            Name <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="input"
-            placeholder="Agent 1 Tools"
-          />
-        </div>
-
-        <div>
-          <label className="label">
-            Description
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="input"
-            placeholder="Optional description"
-            rows={2}
-          />
-        </div>
-      </div>
-
-      {/* Tool Selection */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="label">
-            Select Tools <span className="text-red-600">*</span>
-          </label>
-          <div className="text-sm text-neutral-600">
-            {selectedToolIds.size} of {tools.length} selected
-          </div>
-        </div>
-
-        {/* Search and Actions */}
-        <div className="flex items-center space-x-2 mb-3">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input"
-            placeholder="Search tools..."
-          />
-          <button
-            type="button"
-            onClick={selectAllTools}
-            className="px-3 py-2 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200"
-          >
-            Select All
-          </button>
-          <button
-            type="button"
-            onClick={deselectAllTools}
-            className="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-700 font-medium transition-colors duration-200"
-          >
-            Clear
-          </button>
-        </div>
-
-        {/* Tool List */}
-        <div className="border border-neutral-300 rounded-lg max-h-80 overflow-y-auto">
-          {filteredTools.length === 0 ? (
-            <div className="text-center py-8 text-neutral-600">
-              {tools.length === 0 ? 'No tools available. Onboard a server first.' : 'No matching tools'}
-            </div>
-          ) : (
-            <div className="divide-y divide-neutral-200">
-              {filteredTools.map((tool) => (
-                <label
-                  key={tool.id}
-                  className="flex items-start p-3 hover:bg-neutral-50 cursor-pointer transition-colors duration-200"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedToolIds.has(tool.id)}
-                    onChange={() => toggleTool(tool.id)}
-                    className="mt-1 h-4 w-4 text-primary-600 focus:ring-2 focus:ring-primary-500 border-neutral-300 rounded"
-                  />
-                  <div className="ml-3 flex-1">
-                    <div className="flex items-center">
-                      <span className="font-medium text-neutral-900">{tool.name}</span>
-                      <span className="ml-2 badge-primary">
-                        {tool.source_server_name}
-                      </span>
-                    </div>
-                    {tool.description && (
-                      <p className="mt-1 text-sm text-neutral-600">{tool.description}</p>
-                    )}
-                  </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Basic Info */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="card">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Instance Details</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="label">
+                  Name <span className="text-red-600">*</span>
                 </label>
-              ))}
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="input"
+                  placeholder="Agent 1 Tools"
+                />
+              </div>
+
+              <div>
+                <label className="label">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="input"
+                  placeholder="Optional description"
+                  rows={3}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Tag Selection */}
+          {tags.length > 0 && (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">Tags (Optional)</h3>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={`px-3 py-1 text-sm rounded-full border transition-colors duration-200 ${
+                      selectedTagIds.has(tag.id)
+                        ? 'bg-primary-100 border-primary-300 text-primary-800'
+                        : 'bg-neutral-100 border-neutral-300 text-neutral-700 hover:bg-neutral-200'
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Tag Selection (Optional) */}
-      {tags.length > 0 && (
-        <div>
-          <label className="label mb-2">
-            Tags (Optional)
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
+        {/* Right Column - Tool Selection (takes 2 columns on large screens) */}
+        <div className="lg:col-span-2">
+          <div className="card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Select Tools <span className="text-red-600">*</span>
+              </h3>
+              <div className="text-sm text-neutral-600 font-medium">
+                {selectedToolIds.size} of {tools.length} selected
+              </div>
+            </div>
+
+            {/* Search and Actions */}
+            <div className="flex items-center space-x-2 mb-4">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input flex-1"
+                placeholder="Search tools by name, description, or server..."
+              />
               <button
-                key={tag.id}
                 type="button"
-                onClick={() => toggleTag(tag.id)}
-                className={`px-3 py-1 text-sm rounded-full border transition-colors duration-200 ${
-                  selectedTagIds.has(tag.id)
-                    ? 'bg-primary-100 border-primary-300 text-primary-800'
-                    : 'bg-neutral-100 border-neutral-300 text-neutral-700 hover:bg-neutral-200'
-                }`}
+                onClick={selectAllTools}
+                className="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg font-medium transition-colors duration-200"
               >
-                {tag.name}
+                Select All
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={deselectAllTools}
+                className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg font-medium transition-colors duration-200"
+              >
+                Clear
+              </button>
+            </div>
+
+            {/* Tool List - Uses full available viewport height */}
+            <div className="border border-neutral-300 rounded-lg max-h-[calc(100vh-250px)] overflow-y-auto">
+              {filteredTools.length === 0 ? (
+                <div className="text-center py-12 text-neutral-600">
+                  {tools.length === 0 ? (
+                    <div>
+                      <p className="font-medium text-lg">No tools available</p>
+                      <p className="text-sm mt-2">Onboard a server first to see available tools</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-medium text-lg">No matching tools</p>
+                      <p className="text-sm mt-2">Try a different search term</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="divide-y divide-neutral-200">
+                  {filteredTools.map((tool) => (
+                    <label
+                      key={tool.id}
+                      className="flex items-start p-4 hover:bg-neutral-50 cursor-pointer transition-colors duration-200"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedToolIds.has(tool.id)}
+                        onChange={() => toggleTool(tool.id)}
+                        className="mt-1 h-4 w-4 text-primary-600 focus:ring-2 focus:ring-primary-500 border-neutral-300 rounded"
+                      />
+                      <div className="ml-3 flex-1">
+                        <div className="flex items-center">
+                          <span className="font-medium text-neutral-900">{tool.name}</span>
+                          <span className="ml-2 badge-primary">
+                            {tool.source_server_name}
+                          </span>
+                        </div>
+                        {tool.description && (
+                          <p className="mt-1 text-sm text-neutral-600">{tool.description}</p>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Actions */}
       <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">

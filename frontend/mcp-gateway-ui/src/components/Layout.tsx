@@ -14,7 +14,7 @@ export default function Layout() {
     <div className="min-h-screen bg-neutral-50">
       {/* Navigation - Clear visual hierarchy with proper spacing */}
       <nav className="bg-white shadow-sm border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               {/* Logo/Title with clear hierarchy */}
@@ -86,8 +86,8 @@ export default function Layout() {
         </div>
       </nav>
 
-      {/* Main content - Plenty of white space, consistent spacing */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {/* Main content - Full width with consistent spacing */}
+      <main className="w-full py-8 px-4 sm:px-6 lg:px-8">
         <div className="space-section">
           <Outlet />
         </div>

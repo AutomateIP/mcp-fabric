@@ -3,16 +3,15 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getInstances, deleteInstance } from '../api/services';
 import type { Instance } from '../types';
-import Modal from '../components/Modal';
-import InstanceForm from '../components/InstanceForm';
 import InstanceDetailsModal from '../components/InstanceDetailsModal';
 
 export default function Instances() {
+  const navigate = useNavigate();
   const [instances, setInstances] = useState<Instance[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,7 +61,7 @@ export default function Instances() {
           <p className="mt-2 text-base text-neutral-600 max-w-2xl">Northbound MCP server instances</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => navigate('/instances/create')}
           className="btn-primary"
         >
           Create Instance
@@ -124,21 +123,6 @@ export default function Instances() {
           ))}
         </div>
       )}
-
-      {/* Create Instance Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Create Instance"
-      >
-        <InstanceForm
-          onSuccess={() => {
-            setShowModal(false);
-            loadInstances();
-          }}
-          onCancel={() => setShowModal(false)}
-        />
-      </Modal>
 
       {/* Instance Details Modal */}
       {selectedInstanceId && (
