@@ -15,11 +15,18 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
     name: '',
     description: '',
     transport_type: 'stdio',
+    installation_type: 'system', // 'system' or 'git'
   });
 
   // STDIO configuration
   const [stdioCommand, setStdioCommand] = useState('');
   const [stdioArgs, setStdioArgs] = useState('');
+
+  // Git installation configuration
+  const [gitRepoUrl, setGitRepoUrl] = useState('');
+  const [gitBranch, setGitBranch] = useState('main');
+  const [installCommand, setInstallCommand] = useState('');
+  const [setupCommand, setSetupCommand] = useState('');
 
   // HTTP configuration
   const [httpUrl, setHttpUrl] = useState('');
@@ -39,30 +46,54 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
       let connection_config: Record<string, any> = {};
 
       if (formData.transport_type === 'stdio') {
-        const cmd = stdioCommand.trim();
-        if (!cmd) {
-          setError('Command is required for STDIO transport');
-          return;
-        }
-        // Validate that command doesn't contain spaces (likely user error)
-        if (cmd.includes(' ')) {
-          setError('Command field should only contain the executable name (e.g., "npx"). Put arguments in the Arguments field below, one per line.');
-          return;
-        }
-        const args = stdioArgs
-          .split('\n')
-          .map(arg => arg.trim())
-          .filter(arg => arg.length > 0);
+        // For git installation, command/args might be detected, but still validate if provided
+        if (formData.installation_type === 'system') {
+          const cmd = stdioCommand.trim();
+          if (!cmd) {
+            setError('Command is required for STDIO transport');
+            return;
+          }
+          // Validate that command doesn't contain spaces (likely user error)
+          if (cmd.includes(' ')) {
+            setError('Command field should only contain the executable name (e.g., "npx"). Put arguments in the Arguments field below, one per line.');
+            return;
+          }
+          const args = stdioArgs
+            .split('\n')
+            .map(arg => arg.trim())
+            .filter(arg => arg.length > 0);
 
-        if (args.length === 0) {
-          setError('At least one argument is required for STDIO transport. For npx servers, add "-y" and the package name.');
-          return;
-        }
+          if (args.length === 0) {
+            setError('At least one argument is required for STDIO transport. For npx servers, add "-y" and the package name.');
+            return;
+          }
 
-        connection_config = {
-          command: cmd,
-          args: args,
-        };
+          connection_config = {
+            command: cmd,
+            args: args,
+          };
+        } else if (formData.installation_type === 'git') {
+          // For git installation, command/args can be provided or auto-detected
+          if (stdioCommand.trim()) {
+            const cmd = stdioCommand.trim();
+            if (cmd.includes(' ')) {
+              setError('Command field should only contain the executable name. Put arguments in the Arguments field below, one per line.');
+              return;
+            }
+            const args = stdioArgs
+              .split('\n')
+              .map(arg => arg.trim())
+              .filter(arg => arg.length > 0);
+
+            connection_config = {
+              command: cmd,
+              args: args,
+            };
+          } else {
+            // Empty config, will be auto-detected
+            connection_config = {};
+          }
+        }
       } else if (formData.transport_type === 'streamable_http') {
         if (!httpUrl.trim()) {
           setError('URL is required for Streamable HTTP transport');
@@ -79,12 +110,45 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
         }
       }
 
-      await createServer({
+      // Build server creation payload
+      const payload: any = {
         name: formData.name,
         description: formData.description || undefined,
         transport_type: formData.transport_type,
         connection_config,
-      });
+      };
+
+      // Add git installation fields if applicable
+      if (formData.transport_type === 'stdio' && formData.installation_type === 'git') {
+        if (!gitRepoUrl.trim()) {
+          setError('Git repository URL is required for git installation');
+          return;
+        }
+
+        // Normalize git URL (accept ssh or https format)
+        let normalizedUrl = gitRepoUrl.trim();
+        if (normalizedUrl.startsWith('git@')) {
+          // Convert SSH format to HTTPS (git@github.com:user/repo.git -> https://github.com/user/repo)
+          normalizedUrl = normalizedUrl
+            .replace(/^git@([^:]+):/, 'https://$1/')
+            .replace(/\.git$/, '');
+        }
+
+        payload.installation_type = 'git';
+        payload.git_repo_url = normalizedUrl;
+        payload.git_branch = gitBranch.trim() || 'main';
+
+        if (installCommand.trim()) {
+          payload.install_command = installCommand.trim();
+        }
+        if (setupCommand.trim()) {
+          payload.setup_command = setupCommand.trim();
+        }
+      } else {
+        payload.installation_type = 'system';
+      }
+
+      await createServer(payload);
 
       onSuccess();
     } catch (err: any) {
@@ -147,8 +211,129 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
         </select>
       </div>
 
-      {/* STDIO Configuration */}
+      {/* Installation Type (for STDIO only) */}
       {formData.transport_type === 'stdio' && (
+        <div>
+          <label className="label">
+            Installation Type <span className="text-red-600">*</span>
+          </label>
+          <select
+            value={formData.installation_type}
+            onChange={(e) => setFormData({ ...formData, installation_type: e.target.value })}
+            className="input"
+          >
+            <option value="system">System Installed (npx, python, etc.)</option>
+            <option value="git">Clone from Git Repository</option>
+          </select>
+          <p className="mt-1 text-xs text-neutral-600">
+            {formData.installation_type === 'system'
+              ? 'Server is already installed or accessible via npx/pip'
+              : 'Gateway will clone and install the server from a Git repository'
+            }
+          </p>
+        </div>
+      )}
+
+      {/* Git Installation Configuration */}
+      {formData.transport_type === 'stdio' && formData.installation_type === 'git' && (
+        <div className="card bg-blue-50 border-blue-300 space-form">
+          <h4 className="font-medium text-blue-900">Git Repository Configuration</h4>
+
+          <div>
+            <label className="label">
+              Repository URL <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={gitRepoUrl}
+              onChange={(e) => setGitRepoUrl(e.target.value)}
+              className="input font-mono text-sm"
+              placeholder="https://github.com/username/repo or git@github.com:username/repo.git"
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              HTTPS or SSH format accepted (SSH will be converted to HTTPS)
+            </p>
+          </div>
+
+          <div>
+            <label className="label">
+              Branch
+            </label>
+            <input
+              type="text"
+              value={gitBranch}
+              onChange={(e) => setGitBranch(e.target.value)}
+              className="input"
+              placeholder="main"
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              Default: main
+            </p>
+          </div>
+
+          <div>
+            <label className="label">
+              Install Command (optional)
+            </label>
+            <input
+              type="text"
+              value={installCommand}
+              onChange={(e) => setInstallCommand(e.target.value)}
+              className="input font-mono text-sm"
+              placeholder="npm install (auto-detected if left empty)"
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              Override auto-detected install command. Leave empty to auto-detect from package.json, pyproject.toml, etc.
+            </p>
+          </div>
+
+          <div>
+            <label className="label">
+              Setup Command (optional)
+            </label>
+            <input
+              type="text"
+              value={setupCommand}
+              onChange={(e) => setSetupCommand(e.target.value)}
+              className="input font-mono text-sm"
+              placeholder="npm run build"
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              Additional build/compile command to run after installation
+            </p>
+          </div>
+
+          <div>
+            <label className="label">
+              Command & Arguments (optional)
+            </label>
+            <input
+              type="text"
+              value={stdioCommand}
+              onChange={(e) => setStdioCommand(e.target.value)}
+              className="input font-mono text-sm"
+              placeholder="node"
+            />
+            <p className="mt-1 text-xs text-neutral-600 mb-2">
+              Override auto-detected entry point command
+            </p>
+            <textarea
+              value={stdioArgs}
+              onChange={(e) => setStdioArgs(e.target.value)}
+              className="input font-mono text-sm"
+              placeholder={"index.js"}
+              rows={3}
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              Entry point will be auto-detected if not provided (e.g., from package.json or main.py)
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* STDIO Configuration */}
+      {formData.transport_type === 'stdio' && formData.installation_type === 'system' && (
         <div className="card bg-neutral-50 space-form">
           <h4 className="font-medium text-neutral-900">STDIO Configuration</h4>
 

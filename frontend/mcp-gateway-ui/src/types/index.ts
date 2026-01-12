@@ -13,6 +13,16 @@ export interface Server {
   created_at: string;
   last_connected_at?: string;
   tool_count: number;
+  // Git installation fields
+  installation_type?: 'system' | 'git';
+  git_repo_url?: string;
+  git_branch?: string;
+  git_commit_sha?: string;
+  install_command?: string;
+  setup_command?: string;
+  install_status?: string;
+  installed_at?: string;
+  installation_path?: string;
 }
 
 export interface Tool {

@@ -1,20 +1,25 @@
 """API routes for server management."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 import uuid
+from datetime import datetime
 
 from app.core.database import get_db
 from app.api.schemas.server import ServerCreate, ServerUpdate, ServerResponse, ServerStatus
 from app.api.schemas.tool import ToolResponse
-from app.models.server import OnboardedServer, TransportType, ServerStatus as ServerStatusEnum
+from app.models.server import OnboardedServer, TransportType, ServerStatus as ServerStatusEnum, InstallationType
 from app.managers.southbound import modern_southbound_manager as southbound_manager
+from app.managers.git_server import GitServerManager
 from app.core.logging import get_logger
 
 router = APIRouter(prefix="/api/servers", tags=["servers"])
 logger = get_logger("api.servers")
+
+# Initialize git server manager
+git_manager = GitServerManager()
 
 
 @router.post("", response_model=ServerResponse, status_code=status.HTTP_201_CREATED)
@@ -40,6 +45,25 @@ async def create_server(
                 detail=f"Invalid transport type: {server_data.transport_type}",
             )
 
+        # Validate installation type
+        installation_type = InstallationType.SYSTEM
+        if server_data.installation_type:
+            try:
+                installation_type = InstallationType(server_data.installation_type)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid installation type: {server_data.installation_type}",
+                )
+
+        # Validate git installation requirements
+        if installation_type == InstallationType.GIT:
+            if not server_data.git_repo_url:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="git_repo_url is required when installation_type is 'git'",
+                )
+
         # Create server model
         server = OnboardedServer(
             id=str(uuid.uuid4()),
@@ -48,11 +72,69 @@ async def create_server(
             transport_type=transport_type,
             connection_config=server_data.connection_config,
             status=ServerStatusEnum.DISCONNECTED,
+            installation_type=installation_type,
+            git_repo_url=server_data.git_repo_url,
+            git_branch=server_data.git_branch or "main",
+            install_command=server_data.install_command,
+            setup_command=server_data.setup_command,
         )
 
         db.add(server)
         await db.commit()
         await db.refresh(server)
+
+        # If git installation, clone and install
+        if installation_type == InstallationType.GIT and server_data.git_repo_url:
+            logger.info(f"Installing git-based server {server.name} from {server_data.git_repo_url}")
+            server.install_status = "installing"
+            await db.commit()
+
+            try:
+                install_result = await git_manager.install_server(
+                    server_id=server.id,
+                    git_url=server_data.git_repo_url,
+                    branch=server_data.git_branch or "main",
+                    install_command=server_data.install_command,
+                    setup_command=server_data.setup_command,
+                )
+
+                if install_result.success:
+                    server.install_status = "completed"
+                    server.installation_path = install_result.path
+                    server.install_log = install_result.log
+                    server.installed_at = datetime.utcnow()
+
+                    # Get commit SHA
+                    if install_result.path:
+                        from pathlib import Path
+                        repo_path = Path(install_result.path)
+                        if (repo_path / ".git").exists():
+                            sha_result = await git_manager._get_commit_sha(install_result.path)
+                            server.git_commit_sha = sha_result
+
+                    # Update connection_config with detected entry point
+                    if install_result.entry_point and transport_type == TransportType.STDIO:
+                        # Merge entry point into connection_config
+                        server.connection_config = {
+                            **server.connection_config,
+                            **install_result.entry_point,
+                        }
+
+                    logger.info(f"Successfully installed server {server.name} at {install_result.path}")
+                else:
+                    server.install_status = "failed"
+                    server.install_log = install_result.log
+                    logger.error(f"Failed to install server {server.name}: {install_result.error}")
+
+                await db.commit()
+                await db.refresh(server)
+
+            except Exception as install_error:
+                logger.error(f"Error installing server {server.name}: {install_error}", exc_info=True)
+                server.install_status = "failed"
+                server.install_log = str(install_error)
+                await db.commit()
+                await db.refresh(server)
 
         # Try to connect (only if not skipped)
         if not skip_connect:
@@ -86,6 +168,15 @@ async def create_server(
             created_at=server.created_at,
             last_connected_at=server.last_connected_at,
             tool_count=tool_count,
+            installation_type=server.installation_type.value if server.installation_type else None,
+            git_repo_url=server.git_repo_url,
+            git_branch=server.git_branch,
+            git_commit_sha=server.git_commit_sha,
+            install_command=server.install_command,
+            setup_command=server.setup_command,
+            install_status=server.install_status,
+            installed_at=server.installed_at,
+            installation_path=server.installation_path,
         )
 
         return response
@@ -118,6 +209,15 @@ async def list_servers(db: AsyncSession = Depends(get_db)) -> list[ServerRespons
             created_at=server.created_at,
             last_connected_at=server.last_connected_at,
             tool_count=len(server.tools),
+            installation_type=server.installation_type.value if server.installation_type else None,
+            git_repo_url=server.git_repo_url,
+            git_branch=server.git_branch,
+            git_commit_sha=server.git_commit_sha,
+            install_command=server.install_command,
+            setup_command=server.setup_command,
+            install_status=server.install_status,
+            installed_at=server.installed_at,
+            installation_path=server.installation_path,
         )
         for server in servers
     ]
@@ -150,6 +250,15 @@ async def get_server(
         created_at=server.created_at,
         last_connected_at=server.last_connected_at,
         tool_count=len(server.tools),
+        installation_type=server.installation_type.value if server.installation_type else None,
+        git_repo_url=server.git_repo_url,
+        git_branch=server.git_branch,
+        git_commit_sha=server.git_commit_sha,
+        install_command=server.install_command,
+        setup_command=server.setup_command,
+        install_status=server.install_status,
+        installed_at=server.installed_at,
+        installation_path=server.installation_path,
     )
 
 
@@ -169,6 +278,14 @@ async def delete_server(server_id: str, db: AsyncSession = Depends(get_db)) -> N
     # Disconnect if connected
     southbound_manager.set_db_session(db)
     await southbound_manager.disconnect_server(server_id)
+
+    # Clean up git installation if present
+    if server.installation_type == InstallationType.GIT and server.installation_path:
+        try:
+            await git_manager.uninstall_server(server_id, server.installation_path)
+            logger.info(f"Cleaned up git installation for server {server_id}")
+        except Exception as e:
+            logger.warning(f"Failed to clean up git installation: {e}")
 
     # Delete from database
     await db.delete(server)
@@ -229,6 +346,15 @@ async def connect_server(
             created_at=server.created_at,
             last_connected_at=server.last_connected_at,
             tool_count=len(server.tools),
+            installation_type=server.installation_type.value if server.installation_type else None,
+            git_repo_url=server.git_repo_url,
+            git_branch=server.git_branch,
+            git_commit_sha=server.git_commit_sha,
+            install_command=server.install_command,
+            setup_command=server.setup_command,
+            install_status=server.install_status,
+            installed_at=server.installed_at,
+            installation_path=server.installation_path,
         )
 
     try:
@@ -249,6 +375,15 @@ async def connect_server(
                 created_at=server.created_at,
                 last_connected_at=server.last_connected_at,
                 tool_count=len(server.tools),
+                installation_type=server.installation_type.value if server.installation_type else None,
+                git_repo_url=server.git_repo_url,
+                git_branch=server.git_branch,
+                git_commit_sha=server.git_commit_sha,
+                install_command=server.install_command,
+                setup_command=server.setup_command,
+                install_status=server.install_status,
+                installed_at=server.installed_at,
+                installation_path=server.installation_path,
             )
         else:
             raise HTTPException(

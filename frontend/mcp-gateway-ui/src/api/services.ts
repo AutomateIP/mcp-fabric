@@ -32,6 +32,11 @@ export const createServer = async (data: {
   description?: string;
   transport_type: string;
   connection_config: Record<string, any>;
+  installation_type?: string;
+  git_repo_url?: string;
+  git_branch?: string;
+  install_command?: string;
+  setup_command?: string;
 }): Promise<Server> => {
   const response = await apiClient.post<Server>('/api/servers', data);
   return response.data;

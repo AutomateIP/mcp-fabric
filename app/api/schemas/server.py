@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ServerCreate(BaseModel):
@@ -12,6 +12,31 @@ class ServerCreate(BaseModel):
     description: Optional[str] = Field(None, description="Server description")
     transport_type: str = Field(..., description="Transport type (stdio, streamable_http, sse)")
     connection_config: dict = Field(..., description="Transport-specific configuration")
+
+    # Git installation fields (optional)
+    installation_type: Optional[str] = Field(
+        "system", description="Installation type: 'system' or 'git'"
+    )
+    git_repo_url: Optional[str] = Field(
+        None, description="Git repository URL (HTTPS only, required if installation_type='git')"
+    )
+    git_branch: Optional[str] = Field(
+        "main", description="Git branch to clone (default: main)"
+    )
+    install_command: Optional[str] = Field(
+        None, description="Command to install dependencies (auto-detected if not provided)"
+    )
+    setup_command: Optional[str] = Field(
+        None, description="Command to build/setup project (optional)"
+    )
+
+    @field_validator("git_repo_url")
+    @classmethod
+    def validate_git_url(cls, v: Optional[str], info) -> Optional[str]:
+        """Validate git URL if installation_type is git."""
+        if v and not v.startswith("https://"):
+            raise ValueError("Git URL must use HTTPS protocol")
+        return v
 
 
 class ServerUpdate(BaseModel):
@@ -35,6 +60,17 @@ class ServerResponse(BaseModel):
     created_at: datetime
     last_connected_at: Optional[datetime]
     tool_count: int = 0
+
+    # Git installation fields
+    installation_type: Optional[str] = None
+    git_repo_url: Optional[str] = None
+    git_branch: Optional[str] = None
+    git_commit_sha: Optional[str] = None
+    install_command: Optional[str] = None
+    setup_command: Optional[str] = None
+    install_status: Optional[str] = None
+    installed_at: Optional[datetime] = None
+    installation_path: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

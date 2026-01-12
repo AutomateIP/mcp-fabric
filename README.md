@@ -83,7 +83,7 @@ Backend runs at http://localhost:8000
 
 ## Usage Examples
 
-### Onboard an MCP Server (STDIO)
+### Onboard an MCP Server (STDIO - System Installed)
 
 ```bash
 curl -X POST http://localhost:8000/api/servers \
@@ -92,12 +92,46 @@ curl -X POST http://localhost:8000/api/servers \
     "name": "Time Server",
     "description": "MCP server for time operations",
     "transport_type": "stdio",
+    "installation_type": "system",
     "connection_config": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-time"]
     }
   }'
 ```
+
+### Onboard an MCP Server (STDIO - From GitHub)
+
+The gateway can automatically clone and install MCP servers from GitHub repositories:
+
+```bash
+curl -X POST http://localhost:8000/api/servers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Custom Server",
+    "description": "Custom MCP server from GitHub",
+    "transport_type": "stdio",
+    "installation_type": "git",
+    "git_repo_url": "https://github.com/username/my-mcp-server",
+    "git_branch": "main",
+    "connection_config": {
+      "command": "node",
+      "args": ["index.js"]
+    }
+  }'
+```
+
+The gateway will:
+1. Clone the repository to `/app/mcp-servers/{server-id}`
+2. Auto-detect project type (Node.js, Python, etc.)
+3. Run install commands (`npm install`, `pip install`, etc.)
+4. Detect entry point if not specified in `connection_config`
+5. Store commit SHA and installation metadata
+
+**Optional fields for git installation:**
+- `install_command`: Override auto-detected install command (e.g., `"npm ci"`)
+- `setup_command`: Additional build/setup command (e.g., `"npm run build"`)
+- `git_branch`: Branch to clone (default: `"main"`)
 
 ### Onboard an MCP Server (Streamable HTTP)
 

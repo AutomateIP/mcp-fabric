@@ -34,6 +34,7 @@ MCP Gateway is an intelligent intermediary system that acts as both an MCP clien
 - **Northbound Manager**: Creates and manages MCP server instances, dynamically registers tools, routes MCP requests
 - **Tool Registry**: Maintains catalog of all available tools with schemas and metadata
 - **Configuration Engine**: Handles instance configuration, validates tool selections, triggers updates
+- **Git Server Manager**: Clones and installs MCP servers from GitHub repositories for STDIO transport
 
 ## Tech Stack
 
@@ -80,6 +81,7 @@ MCP Gateway is an intelligent intermediary system that acts as both an MCP clien
 5. **Instance configuration changes take effect immediately** for new connections
 6. **Use async/await patterns throughout** for all I/O operations
 7. **PostgreSQL is required** - SQLite is not compatible with this application's async workflow
+8. **Git installations use HTTPS only** - SSH and HTTP URLs are rejected for security
 
 ### Transport Protocol Requirements
 
@@ -195,22 +197,26 @@ alembic history
 app/
 ├── main.py                    # FastAPI application entry point
 ├── models/                    # SQLAlchemy ORM models
-│   ├── server.py             # Southbound server models
+│   ├── server.py             # Southbound server models (includes git fields)
 │   ├── instance.py           # Northbound instance models
 │   └── tool.py               # Tool registry models
 ├── managers/                  # Core business logic
 │   ├── southbound.py         # MCP client manager
 │   ├── northbound.py         # MCP server manager
-│   └── configuration.py      # Config engine
+│   ├── git_server.py         # Git repository cloning and installation
+│   └── tool_registry.py      # Tool catalog manager
 ├── api/                       # FastAPI routes
-│   ├── servers.py            # /api/servers/*
+│   ├── servers.py            # /api/servers/* (includes git installation)
 │   ├── instances.py          # /api/instances/*
 │   ├── tools.py              # /api/tools/*
 │   └── tags.py               # /api/tags/*
 ├── transports/               # MCP transport implementations
 │   ├── stdio.py              # STDIO transport
 │   └── streamable_http.py    # Streamable HTTP transport
-└── db.py                     # Database session management
+└── core/                     # Core utilities
+    ├── config.py             # Configuration management
+    ├── database.py           # Database session management
+    └── logging.py            # Structured logging
 ```
 
 ### Architectural Patterns
@@ -242,6 +248,44 @@ When multiple servers expose tools with the same name, implement namespacing str
 - **Suggested format**: `server_name.tool_name`
 - **Must ensure** unique tool identification across all onboarded servers
 - **Configuration option** for conflict resolution behavior (e.g., auto-namespace vs. manual resolution)
+
+### Git Installation for STDIO Servers
+
+The gateway supports automatic cloning and installation of MCP servers from GitHub:
+
+**Installation Types:**
+- `system`: Server is already installed/available (e.g., via npx, system Python package)
+- `git`: Clone from GitHub repository and install dependencies
+
+**Git Installation Process:**
+1. Validate HTTPS URL (SSH/HTTP rejected for security)
+2. Clone repository to `/app/mcp-servers/{server-id}`
+3. Auto-detect project type (Node.js, Python) from:
+   - `package.json` → Run `npm install`
+   - `pyproject.toml` or `setup.py` → Run `pip install -e .`
+   - `requirements.txt` → Run `pip install -r requirements.txt`
+4. Run optional setup command (build, compile, etc.)
+5. Auto-detect entry point if not specified:
+   - Node.js: Check `package.json` start script or main field
+   - Python: Detect module directories
+6. Store commit SHA, installation path, and logs in database
+
+**Security Considerations:**
+- Only HTTPS URLs accepted (no SSH, HTTP, or file:// URLs)
+- Workspace directory isolated: `/app/mcp-servers/`
+- Commands run with timeout limits (clone: 180s, install: 300s, setup: 600s)
+- Installation logs captured for debugging
+
+**API Schema Fields:**
+```python
+ServerCreate(
+    installation_type="git",  # or "system"
+    git_repo_url="https://github.com/user/repo",  # Required for git
+    git_branch="main",  # Optional, default: "main"
+    install_command="npm ci",  # Optional, auto-detected if not provided
+    setup_command="npm run build",  # Optional
+)
+```
 
 ## Testing Guidelines
 

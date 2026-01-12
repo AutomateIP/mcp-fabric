@@ -1,11 +1,12 @@
 /**
- * Instance details modal component with MCP config display
+ * Instance details slide panel component with MCP config display
+ * Enhanced to use SlidePanel for better screen space utilization
  */
 
 import { useState, useEffect } from 'react';
 import { getInstanceDetails } from '../api/services';
 import type { InstanceDetails } from '../types';
-import Modal from './Modal';
+import SlidePanel from './SlidePanel';
 
 interface InstanceDetailsModalProps {
   instanceId: string;
@@ -17,7 +18,6 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
   const [details, setDetails] = useState<InstanceDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showConfig, setShowConfig] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -52,12 +52,18 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Instance Details">
+    <SlidePanel
+      isOpen={isOpen}
+      onClose={onClose}
+      title={details?.name || 'Instance Details'}
+      subtitle={details?.description}
+      size="large"
+    >
       {loading ? (
-        <div className="flex items-center justify-center py-8">
+        <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center space-y-3">
             <div className="spinner"></div>
-            <div className="text-neutral-600">Loading details...</div>
+            <div className="text-neutral-600">Loading instance details...</div>
           </div>
         </div>
       ) : error ? (
@@ -65,132 +71,178 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
           <p className="text-red-800 font-medium">{error}</p>
         </div>
       ) : details ? (
-        <div className="space-form">
-          {/* Basic Info */}
-          <div>
-            <h3 className="text-lg font-semibold text-neutral-900">{details.name}</h3>
-            {details.description && (
-              <p className="mt-1 text-sm text-neutral-600">{details.description}</p>
-            )}
-          </div>
-
-          {/* Metadata */}
-          <div className="card bg-neutral-50">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-neutral-600">Endpoint:</span>
-                <p className="font-mono text-xs text-neutral-900 mt-1 break-all">
-                  {details.endpoint_path}
-                </p>
-              </div>
-              <div>
-                <span className="text-neutral-600">Tools:</span>
-                <p className="text-neutral-900 font-medium mt-1">{details.tool_count}</p>
-              </div>
-              <div>
-                <span className="text-neutral-600">Created:</span>
-                <p className="text-neutral-900 mt-1">
-                  {new Date(details.created_at).toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <span className="text-neutral-600">Updated:</span>
-                <p className="text-neutral-900 mt-1">
-                  {new Date(details.updated_at).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Tags */}
-          {details.tags.length > 0 && (
-            <div>
-              <h4 className="label mb-2">Tags</h4>
-              <div className="flex flex-wrap gap-2">
-                {details.tags.map((tag) => (
-                  <span key={tag} className="badge-neutral">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tools List */}
-          <div>
-            <h4 className="label mb-2">Tools ({details.tools.length})</h4>
-            {details.tools.length === 0 ? (
-              <p className="text-sm text-neutral-600">No tools configured</p>
-            ) : (
-              <div className="border border-neutral-300 rounded-lg max-h-60 overflow-y-auto">
-                <div className="divide-y divide-neutral-200">
-                  {details.tools.map((tool) => (
-                    <div key={tool.id} className="p-3">
-                      <div className="flex items-center">
-                        <span className="font-medium text-neutral-900">{tool.name}</span>
-                        <span className="ml-2 badge-primary">
-                          {tool.source_server_name}
-                        </span>
+        <div className="space-y-6">
+          {/* Status Banner */}
+          <div className="card bg-gradient-to-r from-neutral-50 to-white border-2 border-neutral-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div>
+                  <div className="text-sm font-medium text-neutral-600">Endpoint Path</div>
+                  <div className="mt-1 font-mono text-sm text-neutral-900 bg-white px-3 py-1 rounded border border-neutral-200">
+                    {details.endpoint_path}
+                  </div>
+                </div>
+                <div className="border-l border-neutral-300 h-12"></div>
+                <div>
+                  <div className="text-sm font-medium text-neutral-600">Tools Configured</div>
+                  <div className="mt-1 text-2xl font-bold text-primary-600">{details.tool_count}</div>
+                </div>
+                {details.tags.length > 0 && (
+                  <>
+                    <div className="border-l border-neutral-300 h-12"></div>
+                    <div>
+                      <div className="text-sm font-medium text-neutral-600">Tags</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {details.tags.slice(0, 3).map((tag) => (
+                          <span key={tag} className="badge-neutral text-xs">
+                            {tag}
+                          </span>
+                        ))}
+                        {details.tags.length > 3 && (
+                          <span className="badge-neutral text-xs">+{details.tags.length - 3}</span>
+                        )}
                       </div>
-                      {tool.description && (
-                        <p className="mt-1 text-sm text-neutral-600">{tool.description}</p>
-                      )}
                     </div>
-                  ))}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Metadata */}
+              <div className="card bg-neutral-50">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-4">Metadata</h3>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm text-neutral-600">Created:</span>
+                    <p className="mt-1 text-neutral-900">{new Date(details.created_at).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-neutral-600">Last Updated:</span>
+                    <p className="mt-1 text-neutral-900">{new Date(details.updated_at).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-neutral-600">Instance ID:</span>
+                    <p className="mt-1 font-mono text-xs text-neutral-900 break-all bg-white p-2 rounded border border-neutral-200">
+                      {instanceId}
+                    </p>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* MCP Config Toggle */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowConfig(!showConfig)}
-              className="flex items-center justify-between w-full btn-secondary text-left"
-            >
-              <span>MCP Configuration</span>
-              <svg
-                className={`w-5 h-5 transition-transform duration-200 ${showConfig ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+              {/* All Tags */}
+              {details.tags.length > 0 && (
+                <div className="card bg-neutral-50">
+                  <h3 className="text-lg font-semibold text-neutral-900 mb-4">All Tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {details.tags.map((tag) => (
+                      <span key={tag} className="badge-neutral">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {showConfig && (
-              <div className="mt-3 card bg-neutral-50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-neutral-700">
-                    Claude Code MCP Configuration
-                  </span>
+              {/* MCP Configuration */}
+              <div className="card bg-primary-50 border-primary-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-primary-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    MCP Configuration
+                  </h3>
                   <button
                     onClick={copyConfig}
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200"
+                    className="btn-secondary text-sm"
                   >
-                    {copied ? '✓ Copied' : 'Copy'}
+                    {copied ? '✓ Copied' : 'Copy Config'}
                   </button>
                 </div>
-                <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono">
+                <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono max-h-80 overflow-y-auto">
                   {JSON.stringify(details.mcp_config, null, 2)}
                 </pre>
-                <p className="mt-2 text-xs text-neutral-600">
-                  Add this configuration to your Claude Code settings to use this MCP instance.
+                <p className="mt-3 text-sm text-primary-800 bg-white p-3 rounded border border-primary-200">
+                  <strong>How to use:</strong> Copy this configuration and add it to your Claude Code MCP settings to connect to this instance.
                 </p>
               </div>
-            )}
+            </div>
+
+            {/* Right Column - Tools List */}
+            <div className="space-y-6">
+              <div className="card bg-white border-2 border-neutral-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Tools ({details.tools.length})
+                  </h3>
+                  {details.tools.length > 0 && (
+                    <span className="text-sm text-neutral-600">
+                      {details.tools.length} tool{details.tools.length !== 1 ? 's' : ''} configured
+                    </span>
+                  )}
+                </div>
+
+                {details.tools.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-neutral-400 mb-2">
+                      <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <p className="text-neutral-600">No tools configured</p>
+                    <p className="text-sm text-neutral-500 mt-1">Edit this instance to add tools</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
+                    {details.tools.map((tool, idx) => (
+                      <div
+                        key={tool.id}
+                        className="p-4 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors duration-150 border border-neutral-200"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 flex-wrap">
+                              <span className="font-mono text-sm font-semibold text-primary-600">
+                                {tool.name}
+                              </span>
+                              <span className="text-xs text-neutral-500">#{idx + 1}</span>
+                              <span className="badge-primary text-xs">
+                                {tool.source_server_name}
+                              </span>
+                            </div>
+                            {tool.description && (
+                              <p className="mt-2 text-sm text-neutral-600 line-clamp-3">
+                                {tool.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Close Button */}
-          <div className="flex justify-end pt-4 border-t border-neutral-200">
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">
+            <button
+              onClick={() => window.open(details.endpoint_path, '_blank')}
+              className="btn-secondary"
+            >
+              Open Endpoint
+            </button>
             <button onClick={onClose} className="btn-primary">
               Close
             </button>
           </div>
         </div>
       ) : null}
-    </Modal>
+    </SlidePanel>
   );
 }

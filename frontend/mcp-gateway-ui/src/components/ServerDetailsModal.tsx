@@ -1,11 +1,12 @@
 /**
- * Server details modal component
+ * Server details slide panel component
+ * Enhanced to show git installation info and use more screen space
  */
 
 import { useState, useEffect } from 'react';
 import { getServer, getTools } from '../api/services';
 import type { Server, Tool } from '../types';
-import Modal from './Modal';
+import SlidePanel from './SlidePanel';
 
 interface ServerDetailsModalProps {
   serverId: string;
@@ -18,6 +19,7 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showConnectionConfig, setShowConnectionConfig] = useState(true); // Start expanded by default
 
   useEffect(() => {
     if (isOpen && serverId) {
@@ -52,13 +54,25 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
     reconnecting: 'bg-yellow-100 text-yellow-700',
   };
 
+  const installStatusColors: Record<string, string> = {
+    completed: 'bg-green-100 text-green-700',
+    installing: 'bg-yellow-100 text-yellow-700',
+    failed: 'bg-red-100 text-red-700',
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Server Details">
+    <SlidePanel
+      isOpen={isOpen}
+      onClose={onClose}
+      title={server?.name || 'Server Details'}
+      subtitle={server?.description}
+      size="large"
+    >
       {loading ? (
-        <div className="flex items-center justify-center py-8">
+        <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center space-y-3">
             <div className="spinner"></div>
-            <div className="text-neutral-600">Loading details...</div>
+            <div className="text-neutral-600">Loading server details...</div>
           </div>
         </div>
       ) : error ? (
@@ -66,95 +80,237 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
           <p className="text-red-800 font-medium">{error}</p>
         </div>
       ) : server ? (
-        <div className="space-form">
-          {/* Basic Info */}
-          <div>
-            <div className="flex items-center space-x-3">
-              <h3 className="text-lg font-semibold text-neutral-900">{server.name}</h3>
-              <span className={`badge ${statusColors[server.status]}`}>
-                {server.status}
-              </span>
-            </div>
-            {server.description && (
-              <p className="mt-1 text-sm text-neutral-600">{server.description}</p>
-            )}
-          </div>
-
-          {/* Metadata */}
-          <div className="card bg-neutral-50">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-neutral-600">Transport:</span>
-                <p className="text-neutral-900 font-medium mt-1 capitalize">{server.transport_type}</p>
-              </div>
-              <div>
-                <span className="text-neutral-600">Tools:</span>
-                <p className="text-neutral-900 font-medium mt-1">{server.tool_count}</p>
-              </div>
-              <div>
-                <span className="text-neutral-600">Created:</span>
-                <p className="text-neutral-900 mt-1">
-                  {new Date(server.created_at).toLocaleString()}
-                </p>
-              </div>
-              {server.last_connected_at && (
+        <div className="space-y-6">
+          {/* Status Banner */}
+          <div className="card bg-gradient-to-r from-neutral-50 to-white border-2 border-neutral-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
                 <div>
-                  <span className="text-neutral-600">Last Connected:</span>
-                  <p className="text-neutral-900 mt-1">
-                    {new Date(server.last_connected_at).toLocaleString()}
-                  </p>
+                  <div className="text-sm font-medium text-neutral-600">Connection Status</div>
+                  <span className={`inline-block mt-1 badge ${statusColors[server.status]}`}>
+                    {server.status}
+                  </span>
                 </div>
-              )}
-              {server.session_id && (
-                <div className="col-span-2">
-                  <span className="text-neutral-600">Session ID:</span>
-                  <p className="text-neutral-900 font-mono text-xs mt-1 break-all">{server.session_id}</p>
+                <div className="border-l border-neutral-300 h-12"></div>
+                <div>
+                  <div className="text-sm font-medium text-neutral-600">Transport</div>
+                  <div className="mt-1 text-neutral-900 font-medium capitalize">{server.transport_type}</div>
                 </div>
-              )}
+                <div className="border-l border-neutral-300 h-12"></div>
+                <div>
+                  <div className="text-sm font-medium text-neutral-600">Tools Discovered</div>
+                  <div className="mt-1 text-2xl font-bold text-primary-600">{server.tool_count}</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Connection Config */}
-          {server.connection_config && (
-            <div>
-              <h4 className="label mb-2">Connection Configuration</h4>
-              <div className="card bg-neutral-50">
-                <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono">
-                  {JSON.stringify(server.connection_config, null, 2)}
-                </pre>
-              </div>
-            </div>
-          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Git Installation Info */}
+              {server.installation_type === 'git' && (
+                <div className="card bg-blue-50 border-blue-300">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Git Installation
+                  </h3>
 
-          {/* Tools List */}
-          <div>
-            <h4 className="label mb-2">Tools ({tools.length})</h4>
-            {tools.length === 0 ? (
-              <p className="text-sm text-neutral-600">No tools discovered yet</p>
-            ) : (
-              <div className="border border-neutral-300 rounded-lg max-h-60 overflow-y-auto">
-                <div className="divide-y divide-neutral-200">
-                  {tools.map((tool) => (
-                    <div key={tool.id} className="p-3">
-                      <div className="font-medium text-neutral-900">{tool.name}</div>
-                      {tool.description && (
-                        <p className="mt-1 text-sm text-neutral-600">{tool.description}</p>
+                  <div className="space-y-3">
+                    {server.install_status && (
+                      <div>
+                        <span className="text-sm text-blue-700">Install Status:</span>
+                        <div className="mt-1">
+                          <span className={`badge ${installStatusColors[server.install_status] || 'badge-neutral'}`}>
+                            {server.install_status}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {server.git_repo_url && (
+                      <div>
+                        <span className="text-sm text-blue-700">Repository:</span>
+                        <p className="mt-1 font-mono text-xs text-blue-900 break-all bg-white p-2 rounded border border-blue-200">
+                          {server.git_repo_url}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {server.git_branch && (
+                        <div>
+                          <span className="text-sm text-blue-700">Branch:</span>
+                          <p className="mt-1 font-medium text-blue-900">{server.git_branch}</p>
+                        </div>
+                      )}
+
+                      {server.git_commit_sha && (
+                        <div>
+                          <span className="text-sm text-blue-700">Commit:</span>
+                          <p className="mt-1 font-mono text-xs text-blue-900">{server.git_commit_sha.substring(0, 8)}</p>
+                        </div>
                       )}
                     </div>
-                  ))}
+
+                    {server.installation_path && (
+                      <div>
+                        <span className="text-sm text-blue-700">Installation Path:</span>
+                        <p className="mt-1 font-mono text-xs text-blue-900 break-all bg-white p-2 rounded border border-blue-200">
+                          {server.installation_path}
+                        </p>
+                      </div>
+                    )}
+
+                    {server.installed_at && (
+                      <div>
+                        <span className="text-sm text-blue-700">Installed:</span>
+                        <p className="mt-1 text-blue-900">{new Date(server.installed_at).toLocaleString()}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Metadata */}
+              <div className="card bg-neutral-50">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-4">Metadata</h3>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm text-neutral-600">Created:</span>
+                    <p className="mt-1 text-neutral-900">{new Date(server.created_at).toLocaleString()}</p>
+                  </div>
+                  {server.last_connected_at && (
+                    <div>
+                      <span className="text-sm text-neutral-600">Last Connected:</span>
+                      <p className="mt-1 text-neutral-900">{new Date(server.last_connected_at).toLocaleString()}</p>
+                    </div>
+                  )}
+                  {server.session_id && (
+                    <div>
+                      <span className="text-sm text-neutral-600">Session ID:</span>
+                      <p className="mt-1 font-mono text-xs text-neutral-900 break-all bg-white p-2 rounded border border-neutral-200">
+                        {server.session_id}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-sm text-neutral-600">Installation Type:</span>
+                    <p className="mt-1 text-neutral-900 font-medium capitalize">
+                      {server.installation_type || 'system'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Connection Configuration */}
+              <div className="card bg-neutral-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    console.log('Connection Config clicked, current state:', showConnectionConfig);
+                    setShowConnectionConfig(!showConnectionConfig);
+                  }}
+                  className="flex items-center justify-between w-full text-left hover:bg-neutral-100 p-2 -m-2 rounded transition-colors cursor-pointer"
+                >
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Connection Configuration {showConnectionConfig ? '(Expanded)' : '(Click to expand)'}
+                  </h3>
+                  <svg
+                    className={`w-5 h-5 transition-transform duration-200 text-neutral-600 ${showConnectionConfig ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showConnectionConfig && (
+                  <div className="mt-4 border-t border-neutral-200 pt-4">
+                    <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono">
+                      {JSON.stringify(server.connection_config || {}, null, 2)}
+                    </pre>
+                    {(!server.connection_config || Object.keys(server.connection_config).length === 0) && (
+                      <p className="text-sm text-neutral-500 mt-2 italic">
+                        Note: Configuration is empty or not available
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Tools List */}
+            <div className="space-y-6">
+              <div className="card bg-white border-2 border-neutral-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Tools ({tools.length})
+                  </h3>
+                  {tools.length > 0 && (
+                    <span className="text-sm text-neutral-600">
+                      {tools.length} tool{tools.length !== 1 ? 's' : ''} available
+                    </span>
+                  )}
+                </div>
+
+                {tools.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-neutral-400 mb-2">
+                      <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <p className="text-neutral-600">No tools discovered yet</p>
+                    <p className="text-sm text-neutral-500 mt-1">Tools will appear after successful connection</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {tools.map((tool, idx) => (
+                      <div
+                        key={tool.id}
+                        className="p-4 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors duration-150 border border-neutral-200"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-mono text-sm font-semibold text-primary-600">
+                                {tool.name}
+                              </span>
+                              <span className="text-xs text-neutral-500">#{idx + 1}</span>
+                            </div>
+                            {tool.description && (
+                              <p className="mt-1 text-sm text-neutral-600 line-clamp-2">
+                                {tool.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Close Button */}
-          <div className="flex justify-end pt-4 border-t border-neutral-200">
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">
+            <button
+              onClick={() => window.open(`/api/tools?server_id=${server.id}`, '_blank')}
+              className="btn-secondary"
+            >
+              View Tools API
+            </button>
             <button onClick={onClose} className="btn-primary">
               Close
             </button>
           </div>
         </div>
       ) : null}
-    </Modal>
+    </SlidePanel>
   );
 }
