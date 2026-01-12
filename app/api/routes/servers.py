@@ -13,13 +13,15 @@ from app.api.schemas.tool import ToolResponse
 from app.models.server import OnboardedServer, TransportType, ServerStatus as ServerStatusEnum, InstallationType
 from app.managers.southbound import modern_southbound_manager as southbound_manager
 from app.managers.git_server import GitServerManager
+from app.managers.pip_server import PipServerManager
 from app.core.logging import get_logger
 
 router = APIRouter(prefix="/api/servers", tags=["servers"])
 logger = get_logger("api.servers")
 
-# Initialize git server manager
+# Initialize installation managers
 git_manager = GitServerManager()
+pip_manager = PipServerManager()
 
 
 @router.post("", response_model=ServerResponse, status_code=status.HTTP_201_CREATED)
@@ -64,6 +66,14 @@ async def create_server(
                     detail="git_repo_url is required when installation_type is 'git'",
                 )
 
+        # Validate pip installation requirements
+        if installation_type == InstallationType.PIP:
+            if not server_data.pip_package:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="pip_package is required when installation_type is 'pip'",
+                )
+
         # Create server model
         server = OnboardedServer(
             id=str(uuid.uuid4()),
@@ -73,10 +83,14 @@ async def create_server(
             connection_config=server_data.connection_config,
             status=ServerStatusEnum.DISCONNECTED,
             installation_type=installation_type,
+            # Git fields
             git_repo_url=server_data.git_repo_url,
             git_branch=server_data.git_branch or "main",
             install_command=server_data.install_command,
             setup_command=server_data.setup_command,
+            # Pip fields
+            pip_package=server_data.pip_package,
+            use_uv=server_data.use_uv or False,
         )
 
         db.add(server)
@@ -111,6 +125,49 @@ async def create_server(
                         if (repo_path / ".git").exists():
                             sha_result = await git_manager._get_commit_sha(install_result.path)
                             server.git_commit_sha = sha_result
+
+                    # Update connection_config with detected entry point
+                    if install_result.entry_point and transport_type == TransportType.STDIO:
+                        # Merge entry point into connection_config
+                        server.connection_config = {
+                            **server.connection_config,
+                            **install_result.entry_point,
+                        }
+
+                    logger.info(f"Successfully installed server {server.name} at {install_result.path}")
+                else:
+                    server.install_status = "failed"
+                    server.install_log = install_result.log
+                    logger.error(f"Failed to install server {server.name}: {install_result.error}")
+
+                await db.commit()
+                await db.refresh(server)
+
+            except Exception as install_error:
+                logger.error(f"Error installing server {server.name}: {install_error}", exc_info=True)
+                server.install_status = "failed"
+                server.install_log = str(install_error)
+                await db.commit()
+                await db.refresh(server)
+
+        # If pip installation, install package
+        if installation_type == InstallationType.PIP and server_data.pip_package:
+            logger.info(f"Installing pip-based server {server.name} package: {server_data.pip_package}")
+            server.install_status = "installing"
+            await db.commit()
+
+            try:
+                install_result = await pip_manager.install_server(
+                    server_id=server.id,
+                    package_name=server_data.pip_package,
+                    use_uv=server_data.use_uv or False,
+                )
+
+                if install_result.success:
+                    server.install_status = "completed"
+                    server.installation_path = install_result.path
+                    server.install_log = install_result.log
+                    server.installed_at = datetime.utcnow()
 
                     # Update connection_config with detected entry point
                     if install_result.entry_point and transport_type == TransportType.STDIO:

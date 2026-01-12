@@ -33,6 +33,7 @@ class InstallationType(str, Enum):
 
     SYSTEM = "system"  # Already installed in container/system
     GIT = "git"        # Installed from git repository
+    PIP = "pip"        # Installed via pip or uv
 
 
 class OnboardedServer(Base):
@@ -60,12 +61,14 @@ class OnboardedServer(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    # Git installation fields
+    # Installation fields
     installation_type: Mapped[InstallationType] = mapped_column(
         SQLEnum(InstallationType, values_callable=lambda x: [e.value for e in x]),
         default=InstallationType.SYSTEM,
         nullable=False
     )
+
+    # Git installation fields
     git_repo_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     git_branch: Mapped[Optional[str]] = mapped_column(
         String(128), nullable=True, default="main"
@@ -73,6 +76,12 @@ class OnboardedServer(Base):
     git_commit_sha: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
     install_command: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     setup_command: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Pip installation fields
+    pip_package: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    use_uv: Mapped[Optional[bool]] = mapped_column(nullable=True, default=False)
+
+    # Common installation fields
     install_status: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     install_log: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     installed_at: Mapped[Optional[datetime]] = mapped_column(

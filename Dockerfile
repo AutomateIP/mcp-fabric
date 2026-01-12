@@ -41,7 +41,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install runtime dependencies including git and Node.js for MCP servers
+# Install runtime dependencies including git, Node.js, and uv for MCP servers
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     curl \
@@ -54,6 +54,10 @@ RUN apt-get update && apt-get install -y \
     && apt-get update \
     && apt-get install -y nodejs \
     && npm install -g npm@latest \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && mv /root/.local/bin/uv /usr/local/bin/uv \
+    && mv /root/.local/bin/uvx /usr/local/bin/uvx \
+    && chmod +x /usr/local/bin/uv /usr/local/bin/uvx \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python packages from builder

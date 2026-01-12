@@ -109,9 +109,9 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Metadata & Tags */}
+            <div className="space-y-6 lg:col-span-1">
               {/* Metadata */}
               <div className="card bg-neutral-50">
                 <h3 className="text-lg font-semibold text-neutral-900 mb-4">Metadata</h3>
@@ -146,9 +146,11 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* MCP Configuration */}
-              <div className="card bg-primary-50 border-primary-300">
+            {/* Middle Column - MCP Configuration */}
+            <div className="space-y-6 lg:col-span-1">
+              <div className="card bg-primary-50 border-primary-300 h-full">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-primary-900 flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -163,7 +165,7 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
                     {copied ? '✓ Copied' : 'Copy Config'}
                   </button>
                 </div>
-                <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono max-h-80 overflow-y-auto">
+                <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono max-h-[600px] overflow-y-auto">
                   {JSON.stringify(details.mcp_config, null, 2)}
                 </pre>
                 <p className="mt-3 text-sm text-primary-800 bg-white p-3 rounded border border-primary-200">
@@ -173,7 +175,7 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
             </div>
 
             {/* Right Column - Tools List */}
-            <div className="space-y-6">
+            <div className="space-y-6 lg:col-span-1">
               <div className="card bg-white border-2 border-neutral-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-neutral-900">

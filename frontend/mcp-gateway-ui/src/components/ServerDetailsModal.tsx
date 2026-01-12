@@ -105,9 +105,68 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Installation & Metadata */}
+            <div className="space-y-6 lg:col-span-1">
+              {/* Pip Installation Info */}
+              {server.installation_type === 'pip' && (
+                <div className="card bg-green-50 border-green-300">
+                  <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Pip Installation
+                  </h3>
+
+                  <div className="space-y-3">
+                    {server.install_status && (
+                      <div>
+                        <span className="text-sm text-green-700">Install Status:</span>
+                        <div className="mt-1">
+                          <span className={`badge ${installStatusColors[server.install_status] || 'badge-neutral'}`}>
+                            {server.install_status}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {server.pip_package && (
+                      <div>
+                        <span className="text-sm text-green-700">Package:</span>
+                        <p className="mt-1 font-mono text-sm text-green-900 bg-white p-2 rounded border border-green-200">
+                          {server.pip_package}
+                        </p>
+                      </div>
+                    )}
+
+                    {server.use_uv !== undefined && (
+                      <div>
+                        <span className="text-sm text-green-700">Install Method:</span>
+                        <p className="mt-1 font-medium text-green-900">
+                          {server.use_uv ? '⚡ UV (fast)' : 'pip'}
+                        </p>
+                      </div>
+                    )}
+
+                    {server.installation_path && (
+                      <div>
+                        <span className="text-sm text-green-700">Installation Path:</span>
+                        <p className="mt-1 font-mono text-xs text-green-900 break-all bg-white p-2 rounded border border-green-200">
+                          {server.installation_path}
+                        </p>
+                      </div>
+                    )}
+
+                    {server.installed_at && (
+                      <div>
+                        <span className="text-sm text-green-700">Installed:</span>
+                        <p className="mt-1 text-green-900">{new Date(server.installed_at).toLocaleString()}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Git Installation Info */}
               {server.installation_type === 'git' && (
                 <div className="card bg-blue-50 border-blue-300">
@@ -205,8 +264,11 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
                 </div>
               </div>
 
-              {/* Connection Configuration */}
-              <div className="card bg-neutral-50">
+            </div>
+
+            {/* Middle Column - Connection Configuration */}
+            <div className="space-y-6 lg:col-span-1">
+              <div className="card bg-neutral-50 h-full">
                 <button
                   type="button"
                   onClick={() => {
@@ -216,7 +278,7 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
                   className="flex items-center justify-between w-full text-left hover:bg-neutral-100 p-2 -m-2 rounded transition-colors cursor-pointer"
                 >
                   <h3 className="text-lg font-semibold text-neutral-900">
-                    Connection Configuration {showConnectionConfig ? '(Expanded)' : '(Click to expand)'}
+                    Connection Config
                   </h3>
                   <svg
                     className={`w-5 h-5 transition-transform duration-200 text-neutral-600 ${showConnectionConfig ? 'rotate-180' : ''}`}
@@ -230,7 +292,7 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
 
                 {showConnectionConfig && (
                   <div className="mt-4 border-t border-neutral-200 pt-4">
-                    <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono">
+                    <pre className="bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto text-xs font-mono max-h-[600px] overflow-y-auto">
                       {JSON.stringify(server.connection_config || {}, null, 2)}
                     </pre>
                     {(!server.connection_config || Object.keys(server.connection_config).length === 0) && (
@@ -244,7 +306,7 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
             </div>
 
             {/* Right Column - Tools List */}
-            <div className="space-y-6">
+            <div className="space-y-6 lg:col-span-1">
               <div className="card bg-white border-2 border-neutral-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-neutral-900">
@@ -268,7 +330,7 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
                     <p className="text-sm text-neutral-500 mt-1">Tools will appear after successful connection</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
                     {tools.map((tool, idx) => (
                       <div
                         key={tool.id}

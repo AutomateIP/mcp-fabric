@@ -28,6 +28,10 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
   const [installCommand, setInstallCommand] = useState('');
   const [setupCommand, setSetupCommand] = useState('');
 
+  // Pip installation configuration
+  const [pipPackage, setPipPackage] = useState('');
+  const [useUv, setUseUv] = useState(false);
+
   // HTTP configuration
   const [httpUrl, setHttpUrl] = useState('');
   const [httpHeaders, setHttpHeaders] = useState('{}');
@@ -118,31 +122,50 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
         connection_config,
       };
 
-      // Add git installation fields if applicable
-      if (formData.transport_type === 'stdio' && formData.installation_type === 'git') {
-        if (!gitRepoUrl.trim()) {
-          setError('Git repository URL is required for git installation');
-          return;
-        }
+      // Add installation type specific fields
+      if (formData.transport_type === 'stdio') {
+        if (formData.installation_type === 'git') {
+          // Git installation
+          if (!gitRepoUrl.trim()) {
+            setError('Git repository URL is required for git installation');
+            return;
+          }
 
-        // Normalize git URL (accept ssh or https format)
-        let normalizedUrl = gitRepoUrl.trim();
-        if (normalizedUrl.startsWith('git@')) {
-          // Convert SSH format to HTTPS (git@github.com:user/repo.git -> https://github.com/user/repo)
-          normalizedUrl = normalizedUrl
-            .replace(/^git@([^:]+):/, 'https://$1/')
-            .replace(/\.git$/, '');
-        }
+          // Normalize git URL (accept ssh or https format)
+          let normalizedUrl = gitRepoUrl.trim();
+          if (normalizedUrl.startsWith('git@')) {
+            // Convert SSH format to HTTPS (git@github.com:user/repo.git -> https://github.com/user/repo)
+            normalizedUrl = normalizedUrl
+              .replace(/^git@([^:]+):/, 'https://$1/')
+              .replace(/\.git$/, '');
+          }
 
-        payload.installation_type = 'git';
-        payload.git_repo_url = normalizedUrl;
-        payload.git_branch = gitBranch.trim() || 'main';
+          payload.installation_type = 'git';
+          payload.git_repo_url = normalizedUrl;
+          payload.git_branch = gitBranch.trim() || 'main';
 
-        if (installCommand.trim()) {
-          payload.install_command = installCommand.trim();
-        }
-        if (setupCommand.trim()) {
-          payload.setup_command = setupCommand.trim();
+          if (installCommand.trim()) {
+            payload.install_command = installCommand.trim();
+          }
+          if (setupCommand.trim()) {
+            payload.setup_command = setupCommand.trim();
+          }
+        } else if (formData.installation_type === 'pip') {
+          // Pip installation
+          if (!pipPackage.trim()) {
+            setError('Package name is required for pip installation');
+            return;
+          }
+
+          payload.installation_type = 'pip';
+          payload.pip_package = pipPackage.trim();
+          payload.use_uv = useUv;
+
+          // Connection config is usually empty for pip, will be auto-detected
+          payload.connection_config = {};
+        } else {
+          // System installation
+          payload.installation_type = 'system';
         }
       } else {
         payload.installation_type = 'system';
@@ -223,11 +246,14 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
             className="input"
           >
             <option value="system">System Installed (npx, python, etc.)</option>
+            <option value="pip">Install from PyPI (pip/uv)</option>
             <option value="git">Clone from Git Repository</option>
           </select>
           <p className="mt-1 text-xs text-neutral-600">
             {formData.installation_type === 'system'
-              ? 'Server is already installed or accessible via npx/pip'
+              ? 'Server is already installed or accessible via npx'
+              : formData.installation_type === 'pip'
+              ? 'Gateway will install the server package using pip or uv'
               : 'Gateway will clone and install the server from a Git repository'
             }
           </p>
@@ -329,6 +355,89 @@ export default function ServerForm({ onSuccess, onCancel }: ServerFormProps) {
               Entry point will be auto-detected if not provided (e.g., from package.json or main.py)
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Pip Installation Configuration */}
+      {formData.transport_type === 'stdio' && formData.installation_type === 'pip' && (
+        <div className="card bg-green-50 border-green-300 space-form">
+          <h4 className="font-medium text-green-900">📦 Quick Install from PyPI</h4>
+          <p className="text-sm text-green-700">
+            Install MCP servers directly from PyPI using pip or uv (faster alternative)
+          </p>
+
+          <div>
+            <label className="label">
+              Package Name <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={pipPackage}
+              onChange={(e) => setPipPackage(e.target.value)}
+              className="input font-mono text-sm"
+              placeholder="duckduckgo-mcp-server"
+            />
+            <p className="mt-1 text-xs text-neutral-600">
+              Just the package name (e.g., "duckduckgo-mcp-server", "mcp-memory-server")
+            </p>
+          </div>
+
+          <div className="bg-white p-3 rounded border border-green-200">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useUv}
+                onChange={(e) => setUseUv(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <span className="text-sm text-neutral-900">
+                Use <code className="bg-green-100 text-green-800 px-1 rounded font-mono text-xs">uv pip install</code> (faster)
+              </span>
+            </label>
+            <p className="text-xs text-neutral-600 mt-1 ml-6">
+              uv is 10-100x faster than pip. Recommended if available in your environment.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 p-3 rounded border border-blue-200">
+            <p className="text-sm font-medium text-blue-900 mb-2">💡 Popular MCP Servers:</p>
+            <div className="space-y-1 text-xs text-blue-800 font-mono">
+              <button
+                type="button"
+                onClick={() => setPipPackage('duckduckgo-mcp-server')}
+                className="block hover:bg-blue-100 px-2 py-1 rounded w-full text-left"
+              >
+                duckduckgo-mcp-server
+              </button>
+              <button
+                type="button"
+                onClick={() => setPipPackage('mcp-memory-server')}
+                className="block hover:bg-blue-100 px-2 py-1 rounded w-full text-left"
+              >
+                mcp-memory-server
+              </button>
+              <button
+                type="button"
+                onClick={() => setPipPackage('mcp-server-fetch')}
+                className="block hover:bg-blue-100 px-2 py-1 rounded w-full text-left"
+              >
+                mcp-server-fetch
+              </button>
+            </div>
+            <p className="text-xs text-neutral-600 mt-2">Click to auto-fill</p>
+          </div>
+
+          <div className="bg-neutral-100 p-3 rounded">
+            <p className="text-sm font-medium text-neutral-900 mb-1">Command Preview:</p>
+            <code className="text-xs font-mono text-neutral-700">
+              {useUv ? 'uv' : 'pip'} pip install {pipPackage || '<package-name>'}
+            </code>
+          </div>
+
+          <p className="text-xs text-neutral-500 italic">
+            The gateway will automatically detect the entry point after installation. If it can't, you'll be able to configure it manually.
+          </p>
         </div>
       )}
 

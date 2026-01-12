@@ -13,9 +13,17 @@ class ServerCreate(BaseModel):
     transport_type: str = Field(..., description="Transport type (stdio, streamable_http, sse)")
     connection_config: dict = Field(..., description="Transport-specific configuration")
 
-    # Git installation fields (optional)
+    # Installation fields (optional)
     installation_type: Optional[str] = Field(
-        "system", description="Installation type: 'system' or 'git'"
+        "system", description="Installation type: 'system', 'git', or 'pip'"
+    )
+
+    # Pip installation fields
+    pip_package: Optional[str] = Field(
+        None, description="Pip package name (e.g., 'duckduckgo-mcp-server')"
+    )
+    use_uv: Optional[bool] = Field(
+        False, description="Use 'uv pip install' instead of 'pip install'"
     )
     git_repo_url: Optional[str] = Field(
         None, description="Git repository URL (HTTPS only, required if installation_type='git')"
@@ -61,13 +69,21 @@ class ServerResponse(BaseModel):
     last_connected_at: Optional[datetime]
     tool_count: int = 0
 
-    # Git installation fields
+    # Installation fields
     installation_type: Optional[str] = None
+
+    # Git installation fields
     git_repo_url: Optional[str] = None
     git_branch: Optional[str] = None
     git_commit_sha: Optional[str] = None
     install_command: Optional[str] = None
     setup_command: Optional[str] = None
+
+    # Pip installation fields
+    pip_package: Optional[str] = None
+    use_uv: Optional[bool] = None
+
+    # Common installation fields
     install_status: Optional[str] = None
     installed_at: Optional[datetime] = None
     installation_path: Optional[str] = None

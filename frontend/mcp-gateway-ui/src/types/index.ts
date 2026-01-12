@@ -13,13 +13,18 @@ export interface Server {
   created_at: string;
   last_connected_at?: string;
   tool_count: number;
+  // Installation fields
+  installation_type?: 'system' | 'git' | 'pip';
   // Git installation fields
-  installation_type?: 'system' | 'git';
   git_repo_url?: string;
   git_branch?: string;
   git_commit_sha?: string;
   install_command?: string;
   setup_command?: string;
+  // Pip installation fields
+  pip_package?: string;
+  use_uv?: boolean;
+  // Common installation fields
   install_status?: string;
   installed_at?: string;
   installation_path?: string;

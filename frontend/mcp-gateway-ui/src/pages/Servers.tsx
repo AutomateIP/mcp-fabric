@@ -8,11 +8,13 @@ import type { Server } from '../types';
 import Modal from '../components/Modal';
 import ServerForm from '../components/ServerForm';
 import ServerDetailsModal from '../components/ServerDetailsModal';
+import QuickInstallModal from '../components/QuickInstallModal';
 
 export default function Servers() {
   const [servers, setServers] = useState<Server[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showQuickInstall, setShowQuickInstall] = useState(false);
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,20 +68,48 @@ export default function Servers() {
       <div className="flex justify-between items-start mb-8">
         <div>
           <h2 className="text-3xl font-bold text-neutral-900 tracking-tight">Servers</h2>
-          <p className="mt-2 text-base text-neutral-600 max-w-2xl">Southbound MCP servers</p>
+          <p className="mt-2 text-base text-neutral-600 max-w-2xl">
+            Southbound MCP servers •
+            <button
+              onClick={() => setShowQuickInstall(true)}
+              className="ml-2 text-green-600 hover:text-green-700 font-medium underline"
+            >
+              Paste install command ⚡
+            </button>
+          </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary"
-        >
-          Add Server
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowQuickInstall(true)}
+            className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-xl text-lg px-6 py-3"
+          >
+            <span className="text-2xl">⚡</span>
+            <span className="font-semibold">Quick Install</span>
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-secondary text-sm"
+          >
+            Advanced
+          </button>
+        </div>
       </div>
 
       {servers.length === 0 ? (
-        <div className="card text-center py-8">
-          <p className="text-neutral-600 font-medium">No servers configured</p>
-          <p className="text-sm text-neutral-500 mt-1">Add your first MCP server to get started</p>
+        <div className="card text-center py-12">
+          <div className="text-6xl mb-4">⚡</div>
+          <p className="text-xl text-neutral-700 font-semibold mb-2">No servers configured yet</p>
+          <p className="text-base text-neutral-600 mb-6">Install an MCP server in seconds</p>
+          <button
+            onClick={() => setShowQuickInstall(true)}
+            className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-4 rounded-lg shadow-xl text-lg font-semibold transition-all"
+          >
+            <span className="text-2xl">⚡</span>
+            <span>Quick Install - Paste Command</span>
+          </button>
+          <p className="text-sm text-neutral-500 mt-4">
+            Example: <code className="bg-neutral-100 px-2 py-1 rounded text-green-700">uv pip install duckduckgo-mcp-server</code>
+          </p>
         </div>
       ) : (
         <div className="card p-0 overflow-hidden">
@@ -134,6 +164,16 @@ export default function Servers() {
           </ul>
         </div>
       )}
+
+      {/* Quick Install Modal */}
+      <QuickInstallModal
+        isOpen={showQuickInstall}
+        onClose={() => setShowQuickInstall(false)}
+        onSuccess={() => {
+          setShowQuickInstall(false);
+          loadServers();
+        }}
+      />
 
       {/* Add Server Modal */}
       <Modal
