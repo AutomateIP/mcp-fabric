@@ -32,8 +32,8 @@ class InstallationType(str, Enum):
     """Installation type for MCP servers."""
 
     SYSTEM = "system"  # Already installed in container/system
-    GIT = "git"  # Installed from git repository
-    PIP = "pip"  # Installed via pip or uv
+    GIT = "git"        # Installed from git repository
+    PIP = "pip"        # Installed via pip or uv
 
 
 class OnboardedServer(Base):
@@ -41,10 +41,14 @@ class OnboardedServer(Base):
 
     __tablename__ = "onboarded_servers"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    transport_type: Mapped[TransportType] = mapped_column(SQLEnum(TransportType), nullable=False)
+    transport_type: Mapped[TransportType] = mapped_column(
+        SQLEnum(TransportType), nullable=False
+    )
     connection_config: Mapped[dict] = mapped_column(JSON, nullable=False)
     status: Mapped[ServerStatus] = mapped_column(
         SQLEnum(ServerStatus), default=ServerStatus.DISCONNECTED, nullable=False
@@ -61,12 +65,14 @@ class OnboardedServer(Base):
     installation_type: Mapped[InstallationType] = mapped_column(
         SQLEnum(InstallationType, values_callable=lambda x: [e.value for e in x]),
         default=InstallationType.SYSTEM,
-        nullable=False,
+        nullable=False
     )
 
     # Git installation fields
     git_repo_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
-    git_branch: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, default="main")
+    git_branch: Mapped[Optional[str]] = mapped_column(
+        String(128), nullable=True, default="main"
+    )
     git_commit_sha: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
     install_command: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     setup_command: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -78,11 +84,13 @@ class OnboardedServer(Base):
     # Common installation fields
     install_status: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     install_log: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    installed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    installed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     installation_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
 
     # Relationships
-    tools: Mapped[list["Tool"]] = relationship(  # type: ignore[name-defined]
+    tools: Mapped[list["Tool"]] = relationship(
         "Tool", back_populates="source_server", cascade="all, delete-orphan"
     )
 
