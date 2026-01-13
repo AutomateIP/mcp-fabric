@@ -38,6 +38,7 @@ class ModernNorthboundManager:
         name: str,
         tool_ids: list[str],
         description: Optional[str] = None,
+        transport_type: str = "http",
         tag_ids: Optional[list[str]] = None,
     ) -> NorthboundInstance:
         """Create a new northbound instance with FastMCP server."""
@@ -53,6 +54,7 @@ class ModernNorthboundManager:
             id=instance_id,
             name=name,
             description=description,
+            transport_type=transport_type,
             endpoint_path=endpoint_path,
         )
 
@@ -84,7 +86,7 @@ class ModernNorthboundManager:
         instance = result.scalar_one()
 
         # Register the instance as a FastMCP server
-        await self.register_instance(instance)
+        await self.register_instance(instance, transport_type)
 
         logger.info(
             f"Created northbound instance: {name} with {len(tool_ids)} tools",
@@ -177,7 +179,7 @@ class ModernNorthboundManager:
         instance = result.scalar_one()
 
         # Re-register the instance with updated tools
-        await self.register_instance(instance)
+        await self.register_instance(instance, instance.transport_type)
 
         logger.info(
             f"Updated northbound instance: {instance.name}",
@@ -207,8 +209,18 @@ class ModernNorthboundManager:
             extra={"instance_id": instance_id},
         )
 
-    async def register_instance(self, instance: NorthboundInstance) -> None:
+    async def register_instance(
+        self, instance: NorthboundInstance, transport_type: str = "http"
+    ) -> None:
         """Register an instance as a FastMCP server."""
+        if transport_type == "stdio":
+            # STDIO transport - would launch container here
+            # For now, fall back to HTTP until STDIO implementation is complete
+            logger.warning(
+                f"STDIO transport not yet implemented, falling back to HTTP for instance {instance.name}"
+            )
+            transport_type = "http"
+
         # Create a new FastMCP server for this instance
         mcp = FastMCP(name=instance.name or f"Instance-{instance.id[:8]}")
 
@@ -237,7 +249,7 @@ class ModernNorthboundManager:
 
                     logger.info(
                         f"Proxy tool result type: {type(result)}, length: {len(result) if isinstance(result, list) else 'N/A'}",
-                        extra={"tool_name": tool_name}
+                        extra={"tool_name": tool_name},
                     )
 
                     return result

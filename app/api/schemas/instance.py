@@ -10,6 +10,7 @@ class InstanceCreate(BaseModel):
 
     name: str = Field(..., description="Instance name")
     description: Optional[str] = Field(None, description="Instance description")
+    transport_type: str = Field("http", description="Transport type (http, stdio)")
     tool_ids: list[str] = Field(..., description="List of tool IDs to include")
     tag_ids: Optional[list[str]] = Field(None, description="List of tag IDs")
 
@@ -19,6 +20,7 @@ class InstanceUpdate(BaseModel):
 
     name: Optional[str] = Field(None, description="Instance name")
     description: Optional[str] = Field(None, description="Instance description")
+    transport_type: Optional[str] = Field(None, description="Transport type (http, stdio)")
     tool_ids: Optional[list[str]] = Field(None, description="List of tool IDs to include")
     tag_ids: Optional[list[str]] = Field(None, description="List of tag IDs")
 
@@ -29,6 +31,7 @@ class InstanceResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
+    transport_type: str = Field("http", description="Transport type")
     endpoint_path: str
     created_at: datetime
     updated_at: datetime
@@ -63,6 +66,7 @@ class InstanceDetailResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
+    transport_type: str = Field("http", description="Transport type")
     endpoint_path: str
     created_at: datetime
     updated_at: datetime

@@ -33,6 +33,7 @@ async def create_instance(
             name=instance_data.name,
             tool_ids=instance_data.tool_ids,
             description=instance_data.description,
+            transport_type=instance_data.transport_type,
             tag_ids=instance_data.tag_ids,
         )
 
@@ -86,16 +87,17 @@ async def get_instance(instance_id: str, db: AsyncSession = Depends(get_db)) -> 
     if not instance:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Instance not found")
 
-    return InstanceResponse(
-        id=instance.id,
-        name=instance.name,
-        description=instance.description,
-        endpoint_path=instance.endpoint_path,
-        created_at=instance.created_at,
-        updated_at=instance.updated_at,
-        tool_count=len(instance.tools),
-        tags=[tag.name for tag in instance.tags],
-    )
+        return InstanceResponse(
+            id=instance.id,
+            name=instance.name,
+            description=instance.description,
+            transport_type=getattr(instance, "transport_type", "http"),
+            endpoint_path=instance.endpoint_path,
+            created_at=instance.created_at,
+            updated_at=instance.updated_at,
+            tool_count=len(instance.tools),
+            tags=[tag.name for tag in instance.tags],
+        )
 
 
 @router.get("/{instance_id}/details", response_model=InstanceDetailResponse)
