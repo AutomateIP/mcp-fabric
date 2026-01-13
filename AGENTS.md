@@ -40,7 +40,6 @@ MCP Gateway is an intelligent intermediary system that acts as both an MCP clien
 
 ### Backend
 - **Python**: 3.11+ (required)
-- **Package Manager**: uv (recommended for fast installs)
 - **MCP Framework**: FastMCP 2.0.0+
 - **Web Framework**: FastAPI 0.109.0+
 - **ASGI Server**: Uvicorn 0.27.0+ with standard extras
@@ -99,42 +98,26 @@ MCP Gateway is an intelligent intermediary system that acts as both an MCP clien
 
 ### Backend Development
 ```bash
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Create virtual environment
-uv venv
-
-# Activate virtual environment
-source .venv/bin/activate
-
 # Install dependencies (from project root)
-uv pip install -e .
-uv pip install -e ".[dev]"
+pip install -e .
 
 # Run database migrations
 alembic upgrade head
 
 # Start development server
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Run tests
-uv run pytest
+pytest
 
 # Run linter
-uv run ruff check .
+ruff check .
 
 # Auto-format code
-uv run black .
+black .
 
 # Type checking
-uv run mypy app/
-```
-
-**Alternative: Use the development setup script**
-```bash
-# Run the automated setup script
-./dev-setup.sh
+mypy app/
 ```
 
 ### Frontend Development
@@ -174,12 +157,6 @@ docker compose up -d --build
 
 # Stop and remove volumes (fresh start)
 docker compose down -v
-```
-
-**Alternative: Use the deployment script**
-```bash
-# Run the automated deployment script (includes health checks)
-./deploy.sh
 ```
 
 ### Database Commands

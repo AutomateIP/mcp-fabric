@@ -13,9 +13,10 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements
 COPY pyproject.toml ./
 
-# Install uv and Python dependencies
-RUN pip install --no-cache-dir uv && \
-    uv pip install --system \
+# Install Python dependencies
+# Using explicit versions from pyproject.toml
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
     "fastmcp>=2.0.0" \
     "fastapi>=0.109.0" \
     "uvicorn[standard]>=0.27.0" \
@@ -53,10 +54,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get update \
     && apt-get install -y nodejs \
     && npm install -g npm@latest \
-    && pip install --no-cache-dir uv \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && mv /root/.local/bin/uv /usr/local/bin/uv \
+    && mv /root/.local/bin/uvx /usr/local/bin/uvx \
+    && chmod +x /usr/local/bin/uv /usr/local/bin/uvx \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages and uv from builder
+# Copy Python packages from builder
 COPY --from=backend-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 

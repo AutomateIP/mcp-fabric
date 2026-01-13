@@ -308,37 +308,13 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
 
            {/* Action Buttons */}
            <div className="flex justify-end space-x-2 pt-4 border-t border-neutral-200">
-              <button
-                onClick={() => window.open(`/api/tools?server_id=${server.id}`, '_blank')}
-                className="bg-primary-50 text-primary-700 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors duration-200"
-              >
-                View Tools API
-              </button>
-              {server.installation_type === 'git' && (
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(`/api/servers/${server.id}/update`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                      });
-                      if (response.ok) {
-                        alert('Server updated successfully! The page will reload.');
-                        window.location.reload();
-                      } else {
-                        const error = await response.json();
-                        alert(`Update failed: ${error.detail}`);
-                      }
-                     } catch (error) {
-                       alert(`Update failed: ${error instanceof Error ? error.message : String(error)}`);
-                     }
-                  }}
-                  className="bg-green-50 text-green-700 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors duration-200"
-                >
-                  Update from Repo
-                </button>
-              )}
-              <button
+             <button
+               onClick={() => window.open(`/api/tools?server_id=${server.id}`, '_blank')}
+               className="bg-primary-50 text-primary-700 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors duration-200"
+             >
+               View Tools API
+             </button>
+             <button
                onClick={onClose}
                className="bg-primary-50 text-primary-700 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors duration-200"
              >
