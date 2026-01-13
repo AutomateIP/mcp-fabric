@@ -66,13 +66,7 @@ export default function Servers() {
         <div>
           <h2 className="text-3xl font-bold text-neutral-900 tracking-tight">Servers</h2>
           <p className="mt-2 text-base text-neutral-600 max-w-2xl">
-            Southbound MCP servers •
-            <button
-              onClick={() => navigate('/servers/create/quick')}
-              className="ml-2 text-green-600 hover:text-green-700 font-medium underline"
-            >
-              Paste install command ⚡
-            </button>
+            Southbound MCP servers
           </p>
         </div>
         <div className="flex gap-3">
