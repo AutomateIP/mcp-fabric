@@ -45,8 +45,8 @@ export default function Servers() {
   const statusColors = {
     connected: 'badge-success',
     disconnected: 'badge-neutral',
-    error: 'bg-red-100 text-red-700',
-    reconnecting: 'bg-yellow-100 text-yellow-700',
+    error: 'badge-neutral',
+    reconnecting: 'badge-neutral',
   };
 
   if (loading) {
