@@ -1,13 +1,18 @@
 """Tool models."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from sqlalchemy import String, Text, JSON, DateTime, ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import uuid
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.server import OnboardedServer
+    from app.models.tag import Tag
+    from app.models.instance import NorthboundInstance
 
 
 # Many-to-many association table for tools and tags
@@ -24,9 +29,7 @@ class Tool(Base):
 
     __tablename__ = "tools"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     input_schema: Mapped[dict] = mapped_column(JSON, nullable=False)
@@ -47,10 +50,18 @@ class Tool(Base):
     )
 
     # Relationships
-    source_server: Mapped["OnboardedServer"] = relationship("OnboardedServer", back_populates="tools")
-    tags: Mapped[list["Tag"]] = relationship(
+    source_server: Mapped["OnboardedServer"] = relationship(  # type: ignore[name-defined]
+        "OnboardedServer", back_populates="tools"
+    )
+    tags: Mapped[list["Tag"]] = relationship(  # type: ignore[name-defined]
         "Tag", secondary=tool_tags, back_populates="tools"
     )
+    instances: Mapped[list["NorthboundInstance"]] = relationship(  # type: ignore[name-defined]
+        "NorthboundInstance",
+        secondary="instance_tools",
+        back_populates="tools",
+    )
+    tags: Mapped[list["Tag"]] = relationship("Tag", secondary=tool_tags, back_populates="tools")
     instances: Mapped[list["NorthboundInstance"]] = relationship(
         "NorthboundInstance",
         secondary="instance_tools",
