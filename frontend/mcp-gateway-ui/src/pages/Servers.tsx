@@ -126,9 +126,9 @@ export default function Servers() {
                       {server.status}
                     </span>
                   </div>
-                  {server.description && (
-                    <p className="mt-1 text-sm text-neutral-600">{server.description}</p>
-                  )}
+                  <p className="mt-1 text-sm text-neutral-600">
+                    {server.description || '\u00A0'}
+                  </p>
                 </div>
               </div>
 

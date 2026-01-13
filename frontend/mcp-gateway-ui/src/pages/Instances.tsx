@@ -97,9 +97,9 @@ export default function Instances() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-medium text-neutral-900">{instance.name}</h3>
-                  {instance.description && (
-                    <p className="mt-1 text-sm text-neutral-600">{instance.description}</p>
-                  )}
+                  <p className="mt-1 text-sm text-neutral-600">
+                    {instance.description || '\u00A0'}
+                  </p>
                 </div>
               </div>
 
