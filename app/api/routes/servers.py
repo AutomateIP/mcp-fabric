@@ -498,8 +498,8 @@ async def update_server(server_id: str, db: AsyncSession = Depends(get_db)) -> S
             detail="Update is only available for git-installed servers",
         )
 
-    if not server.installation_path:
-        # Try to reinstall if git_repo_url exists but no installation_path
+    if not server.installation_path or not Path(server.installation_path).exists():
+        # Try to reinstall if git_repo_url exists but no installation_path or path doesn't exist
         if server.git_repo_url:
             logger.info(
                 f"Server {server.name} has git repo but no installation path. Attempting to reinstall..."
