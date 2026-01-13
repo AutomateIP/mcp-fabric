@@ -71,9 +71,9 @@ export default function SlidePanel({
         aria-labelledby="panel-title"
       >
           <div className="flex h-full flex-col bg-white shadow-2xl">
-            {/* Header - Enhanced with better spacing */}
-            <div className="border-b-2 border-neutral-200 bg-gradient-to-r from-primary-50 via-white to-primary-50/30">
-              <div className="flex items-start justify-between px-8 py-6">
+             {/* Header - Consistent with main page styling */}
+            <div className="bg-white">
+              <div className="flex items-start justify-between px-8 py-4">
                 <div className="flex-1 min-w-0">
                   <h2
                     id="panel-title"
@@ -82,22 +82,22 @@ export default function SlidePanel({
                     {title}
                   </h2>
                   {subtitle && (
-                    <p className="mt-2 text-base text-neutral-600">
+                    <p className="mt-2 text-base text-neutral-600 max-w-2xl">
                       {subtitle}
                     </p>
                   )}
                 </div>
                 <div className="ml-6 flex-shrink-0 flex items-center space-x-3">
                   {actions}
-                  <button
-                    onClick={onClose}
-                    className="rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-all duration-200 hover:scale-105"
-                    aria-label="Close panel"
-                  >
-                    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                   <button
+                     onClick={onClose}
+                     className="rounded text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors duration-200"
+                     aria-label="Close panel"
+                   >
+                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                     </svg>
+                   </button>
                 </div>
               </div>
             </div>
