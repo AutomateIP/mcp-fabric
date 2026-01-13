@@ -6,11 +6,17 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 from app.core.database import get_db
 from app.api.schemas.server import ServerCreate, ServerUpdate, ServerResponse, ServerStatus
 from app.api.schemas.tool import ToolResponse
-from app.models.server import OnboardedServer, TransportType, ServerStatus as ServerStatusEnum, InstallationType
+from app.models.server import (
+    OnboardedServer,
+    TransportType,
+    ServerStatus as ServerStatusEnum,
+    InstallationType,
+)
 from app.managers.southbound import modern_southbound_manager as southbound_manager
 from app.managers.git_server import GitServerManager
 from app.managers.pip_server import PipServerManager
@@ -99,7 +105,9 @@ async def create_server(
 
         # If git installation, clone and install
         if installation_type == InstallationType.GIT and server_data.git_repo_url:
-            logger.info(f"Installing git-based server {server.name} from {server_data.git_repo_url}")
+            logger.info(
+                f"Installing git-based server {server.name} from {server_data.git_repo_url}"
+            )
             server.install_status = "installing"
             await db.commit()
 
@@ -121,6 +129,7 @@ async def create_server(
                     # Get commit SHA
                     if install_result.path:
                         from pathlib import Path
+
                         repo_path = Path(install_result.path)
                         if (repo_path / ".git").exists():
                             sha_result = await git_manager._get_commit_sha(install_result.path)
@@ -134,7 +143,9 @@ async def create_server(
                             **install_result.entry_point,
                         }
 
-                    logger.info(f"Successfully installed server {server.name} at {install_result.path}")
+                    logger.info(
+                        f"Successfully installed server {server.name} at {install_result.path}"
+                    )
                 else:
                     server.install_status = "failed"
                     server.install_log = install_result.log
@@ -144,7 +155,9 @@ async def create_server(
                 await db.refresh(server)
 
             except Exception as install_error:
-                logger.error(f"Error installing server {server.name}: {install_error}", exc_info=True)
+                logger.error(
+                    f"Error installing server {server.name}: {install_error}", exc_info=True
+                )
                 server.install_status = "failed"
                 server.install_log = str(install_error)
                 await db.commit()
@@ -152,7 +165,9 @@ async def create_server(
 
         # If pip installation, install package
         if installation_type == InstallationType.PIP and server_data.pip_package:
-            logger.info(f"Installing pip-based server {server.name} package: {server_data.pip_package}")
+            logger.info(
+                f"Installing pip-based server {server.name} package: {server_data.pip_package}"
+            )
             server.install_status = "installing"
             await db.commit()
 
@@ -177,7 +192,9 @@ async def create_server(
                             **install_result.entry_point,
                         }
 
-                    logger.info(f"Successfully installed server {server.name} at {install_result.path}")
+                    logger.info(
+                        f"Successfully installed server {server.name} at {install_result.path}"
+                    )
                 else:
                     server.install_status = "failed"
                     server.install_log = install_result.log
@@ -187,7 +204,9 @@ async def create_server(
                 await db.refresh(server)
 
             except Exception as install_error:
-                logger.error(f"Error installing server {server.name}: {install_error}", exc_info=True)
+                logger.error(
+                    f"Error installing server {server.name}: {install_error}", exc_info=True
+                )
                 server.install_status = "failed"
                 server.install_log = str(install_error)
                 await db.commit()
@@ -209,9 +228,8 @@ async def create_server(
 
         # Count tools using a simple query
         from app.models.tool import Tool
-        tool_count_result = await db.execute(
-            select(Tool).where(Tool.source_server_id == server.id)
-        )
+
+        tool_count_result = await db.execute(select(Tool).where(Tool.source_server_id == server.id))
         tool_count = len(tool_count_result.scalars().all())
 
         response = ServerResponse(
@@ -249,9 +267,7 @@ async def create_server(
 @router.get("", response_model=list[ServerResponse])
 async def list_servers(db: AsyncSession = Depends(get_db)) -> list[ServerResponse]:
     """List all onboarded servers."""
-    result = await db.execute(
-        select(OnboardedServer).options(selectinload(OnboardedServer.tools))
-    )
+    result = await db.execute(select(OnboardedServer).options(selectinload(OnboardedServer.tools)))
     servers = result.scalars().all()
 
     return [
@@ -283,9 +299,7 @@ async def list_servers(db: AsyncSession = Depends(get_db)) -> list[ServerRespons
 
 
 @router.get("/{server_id}", response_model=ServerResponse)
-async def get_server(
-    server_id: str, db: AsyncSession = Depends(get_db)
-) -> ServerResponse:
+async def get_server(server_id: str, db: AsyncSession = Depends(get_db)) -> ServerResponse:
     """Get a specific server."""
     result = await db.execute(
         select(OnboardedServer)
@@ -295,15 +309,14 @@ async def get_server(
     server = result.scalar_one_or_none()
 
     if not server:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Server not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
 
     return ServerResponse(
         id=server.id,
         name=server.name,
         description=server.description,
         transport_type=server.transport_type.value,
+        connection_config=server.connection_config,
         status=server.status.value,
         session_id=server.session_id,
         created_at=server.created_at,
@@ -326,15 +339,11 @@ async def get_server(
 @router.delete("/{server_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_server(server_id: str, db: AsyncSession = Depends(get_db)) -> None:
     """Delete a server."""
-    result = await db.execute(
-        select(OnboardedServer).where(OnboardedServer.id == server_id)
-    )
+    result = await db.execute(select(OnboardedServer).where(OnboardedServer.id == server_id))
     server = result.scalar_one_or_none()
 
     if not server:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Server not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
 
     # Disconnect if connected
     southbound_manager.set_db_session(db)
@@ -354,19 +363,13 @@ async def delete_server(server_id: str, db: AsyncSession = Depends(get_db)) -> N
 
 
 @router.get("/{server_id}/status", response_model=ServerStatus)
-async def get_server_status(
-    server_id: str, db: AsyncSession = Depends(get_db)
-) -> ServerStatus:
+async def get_server_status(server_id: str, db: AsyncSession = Depends(get_db)) -> ServerStatus:
     """Get server connection status."""
-    result = await db.execute(
-        select(OnboardedServer).where(OnboardedServer.id == server_id)
-    )
+    result = await db.execute(select(OnboardedServer).where(OnboardedServer.id == server_id))
     server = result.scalar_one_or_none()
 
     if not server:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Server not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
 
     is_connected = server_id in southbound_manager.connections
 
@@ -379,9 +382,7 @@ async def get_server_status(
 
 
 @router.post("/{server_id}/connect", response_model=ServerResponse)
-async def connect_server(
-    server_id: str, db: AsyncSession = Depends(get_db)
-) -> ServerResponse:
+async def connect_server(server_id: str, db: AsyncSession = Depends(get_db)) -> ServerResponse:
     """Manually connect to a server and discover tools."""
     result = await db.execute(
         select(OnboardedServer)
@@ -391,9 +392,7 @@ async def connect_server(
     server = result.scalar_one_or_none()
 
     if not server:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Server not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
 
     # Check if already connected
     if server_id in southbound_manager.connections:
@@ -402,6 +401,7 @@ async def connect_server(
             name=server.name,
             description=server.description,
             transport_type=server.transport_type.value,
+            connection_config=server.connection_config,
             status=server.status.value,
             session_id=server.session_id,
             created_at=server.created_at,
@@ -431,12 +431,15 @@ async def connect_server(
                 name=server.name,
                 description=server.description,
                 transport_type=server.transport_type.value,
+                connection_config=server.connection_config,
                 status=server.status.value,
                 session_id=server.session_id,
                 created_at=server.created_at,
                 last_connected_at=server.last_connected_at,
                 tool_count=len(server.tools),
-                installation_type=server.installation_type.value if server.installation_type else None,
+                installation_type=server.installation_type.value
+                if server.installation_type
+                else None,
                 git_repo_url=server.git_repo_url,
                 git_branch=server.git_branch,
                 git_commit_sha=server.git_commit_sha,
@@ -460,20 +463,188 @@ async def connect_server(
 
 
 @router.post("/{server_id}/disconnect", status_code=status.HTTP_204_NO_CONTENT)
-async def disconnect_server_endpoint(
-    server_id: str, db: AsyncSession = Depends(get_db)
-) -> None:
+async def disconnect_server_endpoint(server_id: str, db: AsyncSession = Depends(get_db)) -> None:
     """Manually disconnect from a server."""
-    result = await db.execute(
-        select(OnboardedServer).where(OnboardedServer.id == server_id)
-    )
+    result = await db.execute(select(OnboardedServer).where(OnboardedServer.id == server_id))
     server = result.scalar_one_or_none()
 
     if not server:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Server not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
 
     # Disconnect
     southbound_manager.set_db_session(db)
     await southbound_manager.disconnect_server(server_id)
+
+
+@router.post("/{server_id}/update", response_model=ServerResponse)
+async def update_server(server_id: str, db: AsyncSession = Depends(get_db)) -> ServerResponse:
+    """Update a git-installed server to the latest version."""
+    result = await db.execute(
+        select(OnboardedServer)
+        .options(selectinload(OnboardedServer.tools))
+        .where(OnboardedServer.id == server_id)
+    )
+    server = result.scalar_one_or_none()
+
+    if not server:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
+
+    # Only allow updates for git-installed servers
+    if server.installation_type != InstallationType.GIT:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Update is only available for git-installed servers",
+        )
+
+    if not server.installation_path or not Path(server.installation_path).exists():
+        # Try to reinstall if git_repo_url exists but no installation_path or path doesn't exist
+        if server.git_repo_url:
+            logger.info(
+                f"Server {server.name} has git repo but missing/invalid installation path. Attempting to reinstall..."
+            )
+            try:
+                install_result = await git_manager.install_server(
+                    server_id=server.id,
+                    git_url=server.git_repo_url,
+                    branch=server.git_branch or "main",
+                    install_command=server.install_command,
+                    setup_command=server.setup_command,
+                )
+
+                if install_result.success and install_result.path:
+                    server.installation_path = install_result.path
+                    server.install_status = "completed"
+                    server.git_commit_sha = await git_manager._get_commit_sha(install_result.path)
+                    server.installed_at = datetime.utcnow()
+                    await db.commit()
+                    await db.refresh(server)
+
+                    # Now try to reconnect and update
+                    try:
+                        southbound_manager.set_db_session(db)
+                        success = await southbound_manager.connect_server(server, db)
+                        if success:
+                            await southbound_manager.discover_tools(server.id, db)
+                    except Exception as conn_error:
+                        logger.warning(f"Failed to reconnect after reinstall: {conn_error}")
+
+                    # Count tools and return success
+                    from app.models.tool import Tool
+
+                    tool_count_result = await db.execute(
+                        select(Tool).where(Tool.source_server_id == server.id)
+                    )
+                    tool_count = len(tool_count_result.scalars().all())
+
+                    return ServerResponse(
+                        id=server.id,
+                        name=server.name,
+                        description=server.description,
+                        transport_type=server.transport_type.value,
+                        connection_config=server.connection_config,
+                        status=server.status.value,
+                        session_id=server.session_id,
+                        created_at=server.created_at,
+                        last_connected_at=server.last_connected_at,
+                        tool_count=tool_count,
+                        installation_type=server.installation_type.value,
+                        git_repo_url=server.git_repo_url,
+                        git_branch=server.git_branch,
+                        git_commit_sha=server.git_commit_sha,
+                        install_command=server.install_command,
+                        setup_command=server.setup_command,
+                        pip_package=server.pip_package,
+                        use_uv=server.use_uv,
+                        install_status=server.install_status,
+                        installed_at=server.installed_at,
+                        installation_path=server.installation_path,
+                    )
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Failed to reinstall server: {install_result.error}",
+                    )
+            except Exception as reinstall_error:
+                logger.error(f"Failed to reinstall server {server.name}: {reinstall_error}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Failed to reinstall server: {str(reinstall_error)}",
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Server has no installation path and no git repository URL. Cannot update.",
+            )
+
+    try:
+        logger.info(f"Updating git server {server.name} from {server.git_repo_url}")
+
+        # Update from git
+        update_result = await git_manager.update_server(
+            server_id=server.id,
+            server_path=server.installation_path,
+            branch=server.git_branch or "main",
+        )
+
+        if not update_result.success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Update failed: {update_result.error}",
+            )
+
+        # Get new commit SHA
+        new_commit_sha = await git_manager._get_commit_sha(server.installation_path)
+
+        # Update database
+        server.git_commit_sha = new_commit_sha
+        await db.commit()
+        await db.refresh(server)
+
+        # Reconnect server after successful update
+        try:
+            success = await southbound_manager.connect_server(server, db)
+            if success:
+                # Rediscover tools
+                await southbound_manager.discover_tools(server.id, db)
+                await db.refresh(server)
+        except Exception as conn_error:
+            logger.warning(f"Failed to reconnect server {server.name} after update: {conn_error}")
+
+        # Count tools
+        from app.models.tool import Tool
+
+        tool_count_result = await db.execute(select(Tool).where(Tool.source_server_id == server.id))
+        tool_count = len(tool_count_result.scalars().all())
+
+        return ServerResponse(
+            id=server.id,
+            name=server.name,
+            description=server.description,
+            transport_type=server.transport_type.value,
+            connection_config=server.connection_config,
+            status=server.status.value,
+            session_id=server.session_id,
+            created_at=server.created_at,
+            last_connected_at=server.last_connected_at,
+            tool_count=tool_count,
+            installation_type=server.installation_type.value,
+            git_repo_url=server.git_repo_url,
+            git_branch=server.git_branch,
+            git_commit_sha=server.git_commit_sha,
+            install_command=server.install_command,
+            setup_command=server.setup_command,
+            pip_package=server.pip_package,
+            use_uv=server.use_uv,
+            install_status=server.install_status,
+            installed_at=server.installed_at,
+            installation_path=server.installation_path,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating server {server_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update server: {str(e)}",
+        )
