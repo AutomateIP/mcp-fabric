@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure class-based dark mode for Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
 /* Theme configuration using CSS custom properties for Tailwind v4 */
 @theme {
   /* Color palette */
@@ -82,10 +85,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark mode styles */
+.dark body {
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-100);
+}
+
 /* Improve focus visibility for keyboard navigation */
 *:focus-visible {
   outline: 2px solid var(--color-primary-500);
   outline-offset: 2px;
+}
+
+.dark *:focus-visible {
+  outline-color: var(--color-primary-400);
 }
 
 /* Ensure proper box-sizing */
@@ -144,12 +157,26 @@ body {
   border: 1px solid var(--color-neutral-300);
 }
 
+.dark .btn-secondary {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-200);
+  border-color: var(--color-neutral-600);
+}
+
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--color-neutral-50);
 }
 
+.dark .btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-neutral-700);
+}
+
 .btn-secondary:active:not(:disabled) {
   background-color: var(--color-neutral-100);
+}
+
+.dark .btn-secondary:active:not(:disabled) {
+  background-color: var(--color-neutral-600);
 }
 
 .btn-secondary:focus-visible {
@@ -182,6 +209,12 @@ body {
   padding: 24px; /* Increased from 16px for more breathing room */
 }
 
+.dark .card {
+  background-color: var(--color-neutral-800);
+  border-color: var(--color-neutral-700);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
 /* Input fields with consistent styling */
 .input {
   width: 100%;
@@ -191,11 +224,22 @@ body {
   font-size: 16px;
   line-height: 24px;
   color: var(--color-neutral-900);
+  background-color: white;
   transition: all 200ms;
+}
+
+.dark .input {
+  background-color: var(--color-neutral-800);
+  border-color: var(--color-neutral-600);
+  color: var(--color-neutral-100);
 }
 
 .input::placeholder {
   color: var(--color-neutral-400);
+}
+
+.dark .input::placeholder {
+  color: var(--color-neutral-500);
 }
 
 .input:focus {
@@ -207,6 +251,10 @@ body {
 .input:disabled {
   background-color: var(--color-neutral-100);
   cursor: not-allowed;
+}
+
+.dark .input:disabled {
+  background-color: var(--color-neutral-900);
 }
 
 .input-error {
@@ -226,6 +274,10 @@ body {
   margin-bottom: 4px;
 }
 
+.dark .label {
+  color: var(--color-neutral-300);
+}
+
 /* Loading spinner */
 .spinner {
   display: inline-block;
@@ -235,6 +287,11 @@ body {
   border-top-color: var(--color-primary-500);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+.dark .spinner {
+  border-color: var(--color-neutral-700);
+  border-top-color: var(--color-primary-400);
 }
 
 @keyframes spin {
@@ -268,6 +325,22 @@ body {
   color: var(--color-neutral-700);
 }
 
+/* Dark mode badge styles */
+.dark .badge-primary {
+  background-color: var(--color-primary-900);
+  color: var(--color-primary-300);
+}
+
+.dark .badge-success {
+  background-color: var(--color-success-900);
+  color: var(--color-success-300);
+}
+
+.dark .badge-neutral {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-300);
+}
+
 /* Spacing utilities aligned with 8px grid */
 .space-section > * + * {
   margin-top: 24px; /* Increased from 16px for more breathing room */
@@ -289,4 +362,375 @@ body {
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Dark mode text color overrides for better contrast */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: var(--color-neutral-100);
+}
+
+.dark p,
+.dark span,
+.dark div {
+  color: inherit;
+}
+
+/* Specific overrides for common Tailwind classes used in pages */
+.dark .text-neutral-900 {
+  color: var(--color-neutral-100) !important;
+}
+
+.dark .text-neutral-800 {
+  color: var(--color-neutral-200) !important;
+}
+
+.dark .text-neutral-700 {
+  color: var(--color-neutral-300) !important;
+}
+
+/* Commented out to allow component-level dark: variants to work */
+/* .dark .text-neutral-600 {
+  color: var(--color-neutral-400) !important;
+} */
+
+.dark .text-neutral-500 {
+  color: var(--color-neutral-500) !important;
+}
+
+.dark .bg-neutral-50 {
+  background-color: var(--color-neutral-900) !important;
+}
+
+.dark .bg-neutral-100 {
+  background-color: var(--color-neutral-800) !important;
+}
+
+.dark .bg-white {
+  background-color: var(--color-neutral-800) !important;
+}
+
+/* Border color overrides for dark mode */
+.dark .border-neutral-200 {
+  border-color: var(--color-neutral-700) !important;
+}
+
+.dark .border-neutral-300 {
+  border-color: var(--color-neutral-600) !important;
+}
+
+.dark .divide-neutral-200 > * + * {
+  border-color: var(--color-neutral-700) !important;
+}
+
+/* Hover state overrides for dark mode */
+.dark .hover\:bg-neutral-50:hover {
+  background-color: var(--color-neutral-800) !important;
+}
+
+.dark .hover\:bg-neutral-100:hover {
+  background-color: var(--color-neutral-700) !important;
+}
+
+/* Error/Red color overrides for dark mode */
+.dark .bg-red-50 {
+  background-color: #450a0a !important; /* red-950 */
+}
+
+.dark .bg-red-100 {
+  background-color: #7f1d1d !important; /* red-900 */
+}
+
+.dark .text-red-600 {
+  color: #f87171 !important; /* red-400 */
+}
+
+.dark .text-red-700 {
+  color: #fca5a5 !important; /* red-300 */
+}
+
+.dark .text-red-800 {
+  color: #fecaca !important; /* red-200 */
+}
+
+.dark .border-red-200 {
+  border-color: #7f1d1d !important; /* red-900 */
+}
+
+.dark .border-red-300 {
+  border-color: #991b1b !important; /* red-800 */
+}
+
+.dark .hover\:bg-red-50:hover {
+  background-color: #7f1d1d !important; /* red-900 */
+}
+
+/* Success/Green color overrides for dark mode */
+.dark .bg-green-50 {
+  background-color: #052e16 !important; /* green-950 */
+}
+
+.dark .bg-green-100 {
+  background-color: #14532d !important; /* green-900 */
+}
+
+.dark .text-green-600 {
+  color: #4ade80 !important; /* green-400 */
+}
+
+.dark .text-green-700 {
+  color: #86efac !important; /* green-300 */
+}
+
+.dark .text-green-800 {
+  color: #bbf7d0 !important; /* green-200 */
+}
+
+.dark .text-green-900 {
+  color: #dcfce7 !important; /* green-100 */
+}
+
+.dark .border-green-200 {
+  border-color: #14532d !important; /* green-900 */
+}
+
+.dark .border-green-300 {
+  border-color: #166534 !important; /* green-800 */
+}
+
+.dark .hover\:bg-green-100:hover {
+  background-color: #14532d !important; /* green-900 */
+}
+
+.dark .hover\:text-green-700:hover {
+  color: #86efac !important; /* green-300 */
+}
+
+/* Info/Blue color overrides for dark mode */
+.dark .bg-blue-50 {
+  background-color: #172554 !important; /* blue-950 */
+}
+
+.dark .bg-blue-100 {
+  background-color: #1e3a8a !important; /* blue-900 */
+}
+
+.dark .text-blue-700 {
+  color: #93c5fd !important; /* blue-300 */
+}
+
+.dark .text-blue-800 {
+  color: #bfdbfe !important; /* blue-200 */
+}
+
+.dark .text-blue-900 {
+  color: #dbeafe !important; /* blue-100 */
+}
+
+.dark .border-blue-200 {
+  border-color: #1e3a8a !important; /* blue-900 */
+}
+
+.dark .border-blue-300 {
+  border-color: #1e40af !important; /* blue-800 */
+}
+
+.dark .hover\:bg-blue-100:hover {
+  background-color: #1e40af !important; /* blue-800 */
+}
+
+/* Warning/Yellow color overrides for dark mode */
+.dark .bg-yellow-50 {
+  background-color: #422006 !important; /* yellow-950 */
+}
+
+.dark .bg-yellow-100 {
+  background-color: #713f12 !important; /* yellow-900 */
+}
+
+.dark .text-yellow-700 {
+  color: #fde047 !important; /* yellow-300 */
+}
+
+.dark .text-yellow-800 {
+  color: #fef08a !important; /* yellow-200 */
+}
+
+/* Code and monospace elements dark mode */
+.dark code {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-200);
+}
+
+.dark pre {
+  background-color: var(--color-neutral-900);
+  color: var(--color-neutral-100);
+}
+
+/* Additional primary color overrides for dark mode */
+.dark .text-primary-700 {
+  color: var(--color-primary-300) !important;
+}
+
+.dark .text-primary-800 {
+  color: var(--color-primary-200) !important;
+}
+
+.dark .text-primary-900 {
+  color: var(--color-primary-100) !important;
+}
+
+.dark .bg-primary-50 {
+  background-color: var(--color-primary-900) !important;
+}
+
+.dark .bg-primary-100 {
+  background-color: var(--color-primary-800) !important;
+}
+
+.dark .hover\:bg-primary-50:hover {
+  background-color: var(--color-primary-900) !important;
+}
+
+.dark .hover\:bg-primary-100:hover {
+  background-color: var(--color-primary-800) !important;
+}
+
+.dark .hover\:text-primary-700:hover {
+  color: var(--color-primary-300) !important;
+}
+
+/* Modal backdrop dark mode */
+.dark .bg-opacity-10 {
+  --tw-bg-opacity: 0.5 !important;
+}
+
+/* Additional text color overrides */
+.dark .text-neutral-400 {
+  color: var(--color-neutral-500) !important;
+}
+
+.dark .hover\:text-neutral-600:hover {
+  color: var(--color-neutral-400) !important;
+}
+
+.dark .hover\:text-neutral-900:hover {
+  color: var(--color-neutral-100) !important;
+}
+
+/* Success background overrides */
+.dark .bg-success-500 {
+  background-color: var(--color-success-600) !important;
+}
+
+.dark .bg-red-500 {
+  background-color: #dc2626 !important; /* red-600 */
+}
+
+/* Gradient background overrides for dark mode */
+.dark .from-neutral-50 {
+  --tw-gradient-from: var(--color-neutral-800) !important;
+}
+
+.dark .to-white {
+  --tw-gradient-to: var(--color-neutral-900) !important;
+}
+
+.dark .via-white {
+  --tw-gradient-via: var(--color-neutral-800) !important;
+}
+
+.dark .from-primary-100 {
+  --tw-gradient-from: var(--color-primary-900) !important;
+}
+
+.dark .to-primary-200 {
+  --tw-gradient-to: var(--color-primary-800) !important;
+}
+
+.dark .from-primary-50 {
+  --tw-gradient-from: var(--color-primary-900) !important;
+}
+
+.dark .to-primary-50\/30 {
+  --tw-gradient-to: color-mix(in oklab, var(--color-primary-900) 30%, transparent) !important;
+}
+
+.dark .from-green-100 {
+  --tw-gradient-from: var(--color-green-900) !important;
+}
+
+.dark .to-emerald-100 {
+  --tw-gradient-to: var(--color-emerald-600) !important;
+}
+
+/* Additional border color overrides */
+.dark .border-primary-200 {
+  border-color: var(--color-primary-700) !important;
+}
+
+.dark .border-primary-300 {
+  border-color: var(--color-primary-600) !important;
+}
+
+.dark .border-primary-500 {
+  border-color: var(--color-primary-400) !important;
+}
+
+.dark .border-green-500 {
+  border-color: var(--color-green-400) !important;
+}
+
+.dark .border-gray-300 {
+  border-color: var(--color-neutral-600) !important;
+}
+
+.dark .border-neutral-700 {
+  border-color: var(--color-neutral-600) !important;
+}
+
+.dark .border-yellow-300 {
+  border-color: #713f12 !important; /* yellow-900 */
+}
+
+/* Additional background color overrides */
+.dark .bg-primary-600 {
+  background-color: var(--color-primary-700) !important;
+}
+
+.dark .bg-primary-700 {
+  background-color: var(--color-primary-600) !important;
+}
+
+.dark .bg-neutral-200 {
+  background-color: var(--color-neutral-700) !important;
+}
+
+.dark .bg-neutral-700 {
+  background-color: var(--color-neutral-600) !important;
+}
+
+.dark .bg-neutral-800 {
+  background-color: var(--color-neutral-800) !important;
+}
+
+.dark .bg-green-600 {
+  background-color: var(--color-green-700) !important;
+}
+
+/* Additional text color overrides */
+.dark .text-primary-600 {
+  color: var(--color-primary-400) !important;
+}
+
+.dark .text-neutral-100 {
+  color: var(--color-neutral-100) !important;
+}
+
+.dark .text-neutral-500 {
+  color: var(--color-neutral-500) !important;
 }

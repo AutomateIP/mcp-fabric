@@ -78,31 +78,43 @@ export default function Servers() {
         <div className="flex gap-3">
           <button
             onClick={() => navigate('/servers/create/quick')}
-            className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-xl text-lg px-6 py-3"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
           >
-            <span className="text-2xl">⚡</span>
-            <span className="font-semibold">Quick Install</span>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Quick Install</span>
           </button>
           <button
             onClick={() => navigate('/servers/create/advanced')}
-            className="btn-secondary text-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-neutral-700 font-medium rounded-lg border-2 border-neutral-300 hover:border-primary-500 hover:text-primary-700 hover:bg-primary-50 transition-all duration-200 hover:scale-[1.02]"
           >
-            Advanced
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Manual Setup</span>
           </button>
         </div>
       </div>
 
       {servers.length === 0 ? (
         <div className="card text-center py-12">
-          <div className="text-6xl mb-4">⚡</div>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 mb-6 mx-auto">
+            <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
           <p className="text-xl text-neutral-700 font-semibold mb-2">No servers configured yet</p>
           <p className="text-base text-neutral-600 mb-6">Install an MCP server in seconds</p>
           <button
             onClick={() => navigate('/servers/create/quick')}
-            className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-4 rounded-lg shadow-xl text-lg font-semibold transition-all"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl font-medium transition-all duration-200 hover:scale-[1.02]"
           >
-            <span className="text-2xl">⚡</span>
-            <span>Quick Install - Paste Command</span>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Quick Install</span>
           </button>
           <p className="text-sm text-neutral-500 mt-4">
             Example: <code className="bg-neutral-100 px-2 py-1 rounded text-green-700">uv pip install duckduckgo-mcp-server</code>

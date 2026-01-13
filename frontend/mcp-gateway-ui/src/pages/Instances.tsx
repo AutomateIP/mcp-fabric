@@ -62,16 +62,33 @@ export default function Instances() {
         </div>
         <button
           onClick={() => navigate('/instances/create')}
-          className="btn-primary"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
         >
-          Create Instance
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Instance</span>
         </button>
       </div>
 
       {instances.length === 0 ? (
-        <div className="card text-center py-8">
-          <p className="text-neutral-600 font-medium">No instances configured</p>
-          <p className="text-sm text-neutral-500 mt-1">Create your first instance to expose tools</p>
+        <div className="card text-center py-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 mb-6 mx-auto">
+            <svg className="w-10 h-10 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+          <p className="text-xl text-neutral-700 font-semibold mb-2">No instances configured</p>
+          <p className="text-base text-neutral-600 mb-6">Create your first instance to expose tools</p>
+          <button
+            onClick={() => navigate('/instances/create')}
+            className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl font-medium transition-all duration-200 hover:scale-[1.02]"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Create Instance</span>
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

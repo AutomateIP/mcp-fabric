@@ -83,6 +83,7 @@ gateway.db
 # Claude Code
 .claude/ralph-loop.local.md
 .claude/*/ralph-loop.local.md
+.claude/*
 
 # Backups
 backups/
