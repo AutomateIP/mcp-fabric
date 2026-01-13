@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { getInstanceDetails } from '../api/services';
 import type { InstanceDetails } from '../types';
 import SlidePanel from './SlidePanel';
+import InstanceForm from './InstanceForm';
 
 interface InstanceDetailsModalProps {
   instanceId: string;
@@ -19,6 +20,7 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (isOpen && instanceId) {
@@ -49,15 +51,34 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
     }
   };
 
+  const handleEditSuccess = () => {
+    setIsEditing(false);
+    loadDetails(); // Reload the details after successful edit
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
   if (!isOpen) return null;
 
   return (
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title={details?.name || 'Instance Details'}
-      subtitle={details?.description}
+      title={isEditing ? `Edit ${details?.name || 'Instance'}` : (details?.name || 'Instance Details')}
+      subtitle={isEditing ? 'Update instance configuration' : details?.description}
       size="large"
+      actions={
+        !isEditing && !loading && !error && details ? (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors duration-200"
+          >
+            Edit Instance
+          </button>
+        ) : null
+      }
     >
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -70,42 +91,41 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
         <div className="card border-red-300 bg-red-50">
           <p className="text-red-800 font-medium">{error}</p>
         </div>
+      ) : isEditing ? (
+        <InstanceForm
+          instanceId={instanceId}
+          onSuccess={handleEditSuccess}
+          onCancel={handleCancelEdit}
+        />
       ) : details ? (
         <div className="space-y-6">
           {/* Status Banner */}
-          <div className="card bg-gradient-to-r from-neutral-50 to-white border-2 border-neutral-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className="card">
+            <h3 className="text-xl font-semibold text-neutral-900 mb-4">Instance Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <div className="text-sm text-neutral-600">Endpoint Path</div>
+                <div className="mt-1 font-mono text-sm font-medium text-neutral-900">{details.endpoint_path}</div>
+              </div>
+              <div>
+                <div className="text-sm text-neutral-600">Tools Configured</div>
+                <div className="mt-1 text-sm font-medium text-neutral-900">{details.tool_count}</div>
+              </div>
+              {details.tags.length > 0 && (
                 <div>
-                  <div className="text-sm font-medium text-neutral-600">Endpoint Path</div>
-                  <div className="mt-1 font-mono text-sm text-neutral-900 bg-white px-3 py-1 rounded border border-neutral-200">
-                    {details.endpoint_path}
+                  <div className="text-sm text-neutral-600">Tags</div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {details.tags.slice(0, 3).map((tag) => (
+                      <span key={tag} className="badge-neutral text-xs">
+                        {tag}
+                      </span>
+                    ))}
+                    {details.tags.length > 3 && (
+                      <span className="badge-neutral text-xs">+{details.tags.length - 3}</span>
+                    )}
                   </div>
                 </div>
-                <div className="border-l border-neutral-300 h-12"></div>
-                <div>
-                  <div className="text-sm font-medium text-neutral-600">Tools Configured</div>
-                  <div className="mt-1 text-2xl font-bold text-primary-600">{details.tool_count}</div>
-                </div>
-                {details.tags.length > 0 && (
-                  <>
-                    <div className="border-l border-neutral-300 h-12"></div>
-                    <div>
-                      <div className="text-sm font-medium text-neutral-600">Tags</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {details.tags.slice(0, 3).map((tag) => (
-                          <span key={tag} className="badge-neutral text-xs">
-                            {tag}
-                          </span>
-                        ))}
-                        {details.tags.length > 3 && (
-                          <span className="badge-neutral text-xs">+{details.tags.length - 3}</span>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+              )}
             </div>
           </div>
 

@@ -12,6 +12,7 @@ interface SlidePanelProps {
   subtitle?: string;
   children: React.ReactNode;
   size?: 'default' | 'large' | 'full';
+  actions?: React.ReactNode;
 }
 
 export default function SlidePanel({
@@ -20,7 +21,8 @@ export default function SlidePanel({
   title,
   subtitle,
   children,
-  size = 'default'
+  size = 'default',
+  actions
 }: SlidePanelProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -85,15 +87,18 @@ export default function SlidePanel({
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={onClose}
-                  className="ml-6 flex-shrink-0 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-all duration-200 hover:scale-105"
-                  aria-label="Close panel"
-                >
-                  <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="ml-6 flex-shrink-0 flex items-center space-x-3">
+                  {actions}
+                  <button
+                    onClick={onClose}
+                    className="rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-all duration-200 hover:scale-105"
+                    aria-label="Close panel"
+                  >
+                    <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 

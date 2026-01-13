@@ -3,15 +3,16 @@
  */
 
 import { useState, useEffect } from 'react';
-import { createInstance, getTools, getTags } from '../api/services';
+import { createInstance, updateInstance, getTools, getTags, getInstanceDetails } from '../api/services';
 import type { Tool, Tag } from '../types';
 
 interface InstanceFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  instanceId?: string; // If provided, form will be in edit mode
 }
 
-export default function InstanceForm({ onSuccess, onCancel }: InstanceFormProps) {
+export default function InstanceForm({ onSuccess, onCancel, instanceId }: InstanceFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -27,9 +28,11 @@ export default function InstanceForm({ onSuccess, onCancel }: InstanceFormProps)
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isEditMode = !!instanceId;
+
   useEffect(() => {
     loadData();
-  }, []);
+  }, [instanceId]);
 
   const loadData = async () => {
     try {
@@ -40,8 +43,24 @@ export default function InstanceForm({ onSuccess, onCancel }: InstanceFormProps)
       ]);
       setTools(toolsData);
       setTags(tagsData);
+
+      // If in edit mode, load existing instance data
+      if (instanceId) {
+        const instanceDetails = await getInstanceDetails(instanceId);
+        setFormData({
+          name: instanceDetails.name,
+          description: instanceDetails.description || '',
+        });
+        // Extract tool IDs from tools array
+        setSelectedToolIds(new Set(instanceDetails.tools.map(tool => tool.id)));
+        // Tags are already just tag names in the array, need to map to IDs
+        const tagIds = tagsData
+          .filter(tag => instanceDetails.tags.includes(tag.name))
+          .map(tag => tag.id);
+        setSelectedTagIds(new Set(tagIds));
+      }
     } catch (err) {
-      setError('Failed to load tools and tags');
+      setError('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -58,15 +77,24 @@ export default function InstanceForm({ onSuccess, onCancel }: InstanceFormProps)
 
     try {
       setSubmitting(true);
-      await createInstance({
-        name: formData.name,
-        description: formData.description || undefined,
-        tool_ids: Array.from(selectedToolIds),
-        tag_ids: Array.from(selectedTagIds),
-      });
+      if (isEditMode && instanceId) {
+        await updateInstance(instanceId, {
+          name: formData.name,
+          description: formData.description || undefined,
+          tool_ids: Array.from(selectedToolIds),
+          tag_ids: Array.from(selectedTagIds),
+        });
+      } else {
+        await createInstance({
+          name: formData.name,
+          description: formData.description || undefined,
+          tool_ids: Array.from(selectedToolIds),
+          tag_ids: Array.from(selectedTagIds),
+        });
+      }
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to create instance');
+      setError(err.response?.data?.detail || `Failed to ${isEditMode ? 'update' : 'create'} instance`);
     } finally {
       setSubmitting(false);
     }
@@ -289,7 +317,7 @@ export default function InstanceForm({ onSuccess, onCancel }: InstanceFormProps)
           disabled={submitting || selectedToolIds.size === 0}
           className="btn-primary"
         >
-          {submitting ? 'Creating...' : 'Create Instance'}
+          {submitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Instance' : 'Create Instance')}
         </button>
       </div>
     </form>

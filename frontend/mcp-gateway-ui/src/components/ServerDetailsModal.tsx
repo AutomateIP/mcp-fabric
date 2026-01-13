@@ -47,13 +47,6 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
 
   if (!isOpen) return null;
 
-  const statusColors = {
-    connected: 'badge-success',
-    disconnected: 'badge-neutral',
-    error: 'bg-red-100 text-red-700',
-    reconnecting: 'bg-yellow-100 text-yellow-700',
-  };
-
   const installStatusColors: Record<string, string> = {
     completed: 'bg-green-100 text-green-700',
     installing: 'bg-yellow-100 text-yellow-700',
@@ -82,25 +75,27 @@ export default function ServerDetailsModal({ serverId, isOpen, onClose }: Server
       ) : server ? (
         <div className="space-y-6">
           {/* Status Banner */}
-          <div className="card bg-gradient-to-r from-neutral-50 to-white border-2 border-neutral-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <div className="text-sm font-medium text-neutral-600">Connection Status</div>
-                  <span className={`inline-block mt-1 badge ${statusColors[server.status]}`}>
-                    {server.status}
-                  </span>
+          <div className="card">
+            <h3 className="text-xl font-semibold text-neutral-900 mb-4">Server Status</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <div className="text-sm text-neutral-600">Connection Status</div>
+                <div className="mt-1 flex items-center">
+                  <span
+                    className={`h-3 w-3 rounded-full mr-2 ${
+                      server.status === 'connected' ? 'bg-success-500' : server.status === 'error' ? 'bg-red-500' : 'bg-neutral-400'
+                    }`}
+                  />
+                  <span className="text-sm font-medium text-neutral-900 capitalize">{server.status}</span>
                 </div>
-                <div className="border-l border-neutral-300 h-12"></div>
-                <div>
-                  <div className="text-sm font-medium text-neutral-600">Transport</div>
-                  <div className="mt-1 text-neutral-900 font-medium capitalize">{server.transport_type}</div>
-                </div>
-                <div className="border-l border-neutral-300 h-12"></div>
-                <div>
-                  <div className="text-sm font-medium text-neutral-600">Tools Discovered</div>
-                  <div className="mt-1 text-2xl font-bold text-primary-600">{server.tool_count}</div>
-                </div>
+              </div>
+              <div>
+                <div className="text-sm text-neutral-600">Transport</div>
+                <div className="mt-1 text-sm font-medium text-neutral-900 capitalize">{server.transport_type}</div>
+              </div>
+              <div>
+                <div className="text-sm text-neutral-600">Tools Discovered</div>
+                <div className="mt-1 text-sm font-medium text-neutral-900">{server.tool_count}</div>
               </div>
             </div>
           </div>
