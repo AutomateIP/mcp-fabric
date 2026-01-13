@@ -115,14 +115,18 @@ export default function InstanceDetailsModal({ instanceId, isOpen, onClose }: In
                    Copy URL
                  </button>
                </div>
-               <div>
-                 <div className="text-sm text-neutral-600">Tools Configured</div>
-                 <div className="mt-1 text-sm font-medium text-neutral-900">{details.tool_count}</div>
-               </div>
-               <div>
-                 <div className="text-sm text-neutral-600">Created</div>
-                 <div className="mt-1 text-sm text-neutral-900">{new Date(details.created_at).toLocaleDateString()}</div>
-               </div>
+                <div>
+                  <div className="text-sm text-neutral-600">Tools Configured</div>
+                  <div className="mt-1 text-sm font-medium text-neutral-900">{details.tool_count}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-neutral-600">Transport</div>
+                  <div className="mt-1 text-sm font-medium text-neutral-900 capitalize">{details.transport_type || 'http'}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-neutral-600">Created</div>
+                  <div className="mt-1 text-sm text-neutral-900">{new Date(details.created_at).toLocaleDateString()}</div>
+                </div>
                <div>
                  <div className="text-sm text-neutral-600">Instance ID</div>
                  <div className="mt-1 font-mono text-xs text-neutral-900 break-all bg-neutral-50 p-2 rounded border border-neutral-200">

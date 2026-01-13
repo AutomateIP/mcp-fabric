@@ -83,6 +83,7 @@ export const getInstanceDetails = async (id: string): Promise<InstanceDetails> =
 export const createInstance = async (data: {
   name: string;
   description?: string;
+  transport_type?: string;
   tool_ids: string[];
   tag_ids?: string[];
 }): Promise<Instance> => {
@@ -95,6 +96,7 @@ export const updateInstance = async (
   data: {
     name?: string;
     description?: string;
+    transport_type?: string;
     tool_ids?: string[];
     tag_ids?: string[];
   }

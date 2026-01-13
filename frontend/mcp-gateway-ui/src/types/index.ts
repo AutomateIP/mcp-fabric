@@ -46,6 +46,7 @@ export interface Instance {
   id: string;
   name: string;
   description?: string;
+  transport_type?: string;
   endpoint_path: string;
   created_at: string;
   updated_at: string;

@@ -16,6 +16,7 @@ export default function InstanceForm({ onSuccess, onCancel, instanceId }: Instan
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    transport_type: 'http',
   });
 
   const [tools, setTools] = useState<Tool[]>([]);
@@ -50,6 +51,7 @@ export default function InstanceForm({ onSuccess, onCancel, instanceId }: Instan
         setFormData({
           name: instanceDetails.name,
           description: instanceDetails.description || '',
+          transport_type: instanceDetails.transport_type || 'http',
         });
         // Extract tool IDs from tools array
         setSelectedToolIds(new Set(instanceDetails.tools.map(tool => tool.id)));
@@ -81,6 +83,7 @@ export default function InstanceForm({ onSuccess, onCancel, instanceId }: Instan
         await updateInstance(instanceId, {
           name: formData.name,
           description: formData.description || undefined,
+          transport_type: formData.transport_type,
           tool_ids: Array.from(selectedToolIds),
           tag_ids: Array.from(selectedTagIds),
         });
@@ -88,6 +91,7 @@ export default function InstanceForm({ onSuccess, onCancel, instanceId }: Instan
         await createInstance({
           name: formData.name,
           description: formData.description || undefined,
+          transport_type: formData.transport_type,
           tool_ids: Array.from(selectedToolIds),
           tag_ids: Array.from(selectedTagIds),
         });
@@ -189,6 +193,23 @@ export default function InstanceForm({ onSuccess, onCancel, instanceId }: Instan
                     placeholder="Optional description"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <label className="label">
+                    Transport Type
+                  </label>
+                  <select
+                    value={formData.transport_type}
+                    onChange={(e) => setFormData({ ...formData, transport_type: e.target.value })}
+                    className="input"
+                  >
+                    <option value="http">HTTP (Recommended)</option>
+                    <option value="stdio" disabled>STDIO (Coming Soon)</option>
+                  </select>
+                  <p className="mt-1 text-sm text-neutral-600">
+                    HTTP provides web API access. STDIO support coming soon.
+                  </p>
                 </div>
               </div>
             </div>
